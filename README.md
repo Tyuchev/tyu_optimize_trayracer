@@ -1,5 +1,7 @@
 # Trayracer
 
+My attempt at optimizing the below project;
+
 Really really poorly written (by design) raytracer for use as a worst case scenario within programming courses.
 
 ## Build instructions
