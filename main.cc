@@ -3,28 +3,43 @@
 #include "vec3.h"
 #include "raytracer.h"
 #include "sphere.h"
+#include "cmdargs.h"
+
+#include <iostream>
+#include <chrono>
 
 #define degtorad(angle) angle * MPI / 180
 
+// Uni PC = Ryzen Threadripper PRO 3955wx 16 Cores
+
+// Add average counter later?
+
 int main()
-{ 
+{
+    // Time the creation of objects
+    std::chrono::high_resolution_clock wallClock{};
+    auto setupBegin = wallClock.now();
+
+
+    // Store cmdargs in struct (has default values if not provided with args)
+    Cmdargs cmdargs{};
+
+
     Display::Window wnd;
-    
-    wnd.SetTitle("TrayRacer");
+    wnd.SetSize(cmdargs.windowWidth, cmdargs.windowHeight);
     
     if (!wnd.Open())
         return 1;
 
     std::vector<Color> framebuffer;
 
-    const unsigned w = 200;
-    const unsigned h = 100;
-    framebuffer.resize(w * h);
-    
-    int raysPerPixel = 1;
-    int maxBounces = 5;
+    // initial resolution is 200x100
+    // is this actual image resolution?
+    framebuffer.resize(cmdargs.imageWidth * cmdargs.imageHeight);
 
-    Raytracer rt = Raytracer(w, h, framebuffer, raysPerPixel, maxBounces);
+    // Create Raytracer
+
+    Raytracer rt = Raytracer(cmdargs.imageWidth, cmdargs.imageHeight, framebuffer, cmdargs.raysPerPixel, cmdargs.maxBounces);
 
     // Create some objects
     Material* mat = new Material();
@@ -33,6 +48,8 @@ int main()
     mat->roughness = 0.3;
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
     rt.AddObject(ground);
+
+    // Deterministic random sphere generation
 
     for (int it = 0; it < 12; it++)
     {
@@ -160,11 +177,27 @@ int main()
     int frameIndex = 0;
 
     std::vector<Color> framebufferCopy;
-    framebufferCopy.resize(w * h);
+    framebufferCopy.resize(cmdargs.imageWidth * cmdargs.imageHeight);
+
+
+    // End of setup timer
+    float setupTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(wallClock.now() - setupBegin)).count() * 0.001;
+    // Output setup time of objects
+    std::cout << "Setup Time: " << setupTimer << " seconds" << std::endl;
+
+
+    // Create time points for render loop
+    std::chrono::high_resolution_clock::time_point renderBegin;
+    std::chrono::high_resolution_clock::time_point renderEnd;
+    double renderTimer{ 0.0 };
+
+
 
     // rendering loop
     while (wnd.IsOpen() && !exit)
     {
+        renderBegin = wallClock.now();
+
         resetFramebuffer = false;
         moveDir = {0,0,0};
         pitch = 0;
@@ -215,12 +248,23 @@ int main()
         glClearColor(0, 0, 0, 1.0);
         glClear( GL_COLOR_BUFFER_BIT );
 
-        wnd.Blit((float*)&framebufferCopy[0], w, h);
+        wnd.Blit((float*)&framebufferCopy[0], cmdargs.imageWidth, cmdargs.imageHeight);
         wnd.SwapBuffers();
+
+        // Render timer
+        renderEnd = wallClock.now();
+        renderTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - renderBegin)).count() * 0.001;
+
+        std::cout << "Render Time: " << renderTimer << " seconds\n" << std::endl;;
+
     }
 
+
+    // Cleanup
     if (wnd.IsOpen())
         wnd.Close();
+
+
 
     return 0;
 } 

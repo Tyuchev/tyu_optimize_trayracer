@@ -58,11 +58,12 @@ int32_t Window::WindowCount = 0;
 //------------------------------------------------------------------------------
 /**
 */
+// Initial window size 1024 x 768
 Window::Window() :
 	window(nullptr),
 	width(1024),
 	height(768),
-	title("Trayracer")
+	title("James' Trayracer")
 {
 	
 }

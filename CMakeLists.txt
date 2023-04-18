@@ -49,6 +49,7 @@ SET(files
 		random.cc
 		material.h
 		material.cc
+		cmdargs.h
 	)
 SOURCE_GROUP("trayracer" FILES ${files})
 
