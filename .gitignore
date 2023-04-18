@@ -1,6 +1,8 @@
 .vscode/*
+.vs/*
 build/*
 bin/*
+out/*
 
 !build/.gitkeep
 !bin/.gitkeep
