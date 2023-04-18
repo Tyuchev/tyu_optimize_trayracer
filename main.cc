@@ -12,7 +12,7 @@
 
 // Uni PC = Ryzen Threadripper PRO 3955wx 16 Cores
 
-// Add average counter later?
+// Add average timer later?
 
 int main()
 {
@@ -51,7 +51,7 @@ int main()
 
     // Deterministic random sphere generation
 
-    for (int it = 0; it < 12; it++)
+    for (int it = 0; it < cmdargs.numSpheres; it++)
     {
         {
             Material* mat = new Material();
@@ -180,18 +180,22 @@ int main()
     framebufferCopy.resize(cmdargs.imageWidth * cmdargs.imageHeight);
 
 
+    // Num of Rays per frame
+    float numberMegaRays = framebuffer.size() * (cmdargs.raysPerPixel * 0.000001f);
+    float megaRaysPerSec = 0.0f;
+
+
     // End of setup timer
     float setupTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(wallClock.now() - setupBegin)).count() * 0.001;
     // Output setup time of objects
     std::cout << "Setup Time: " << setupTimer << " seconds" << std::endl;
 
 
+
     // Create time points for render loop
     std::chrono::high_resolution_clock::time_point renderBegin;
     std::chrono::high_resolution_clock::time_point renderEnd;
     double renderTimer{ 0.0 };
-
-
 
     // rendering loop
     while (wnd.IsOpen() && !exit)
@@ -255,7 +259,11 @@ int main()
         renderEnd = wallClock.now();
         renderTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - renderBegin)).count() * 0.001;
 
-        std::cout << "Render Time: " << renderTimer << " seconds\n" << std::endl;;
+        // MraysPerSec
+        megaRaysPerSec = numberMegaRays *  (1 / renderTimer);
+
+        std::cout << "Render Time: " << renderTimer << " seconds" << std::endl;
+        std::cout << "Mrays/sec: " << megaRaysPerSec << "\n" << std::endl;
 
     }
 

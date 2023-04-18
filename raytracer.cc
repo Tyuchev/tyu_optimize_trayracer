@@ -22,6 +22,7 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 void
 Raytracer::Raytrace()
 {
+    // I thought leet code was banned xD
     static int leet = 1337;
     std::mt19937 generator (leet++);
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
@@ -103,8 +104,7 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
     for (size_t i = 0; i < world.size(); ++i)
     {
         Object* obj = world[i];
-        std::vector<Object*>::iterator it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(), 
-                [obj](const auto& val)
+        std::vector<Object*>::iterator it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(), [obj](const auto& val)
                 {
                     return (obj->GetName() == val->GetName() && obj->GetId() == val->GetId());
                 }
