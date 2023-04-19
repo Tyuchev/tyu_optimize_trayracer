@@ -50,6 +50,7 @@ SET(files
 		material.h
 		material.cc
 		cmdargs.h
+		cmdargs.cpp
 	)
 SOURCE_GROUP("trayracer" FILES ${files})
 

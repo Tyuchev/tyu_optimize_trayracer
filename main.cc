@@ -3,7 +3,7 @@
 #include "vec3.h"
 #include "raytracer.h"
 #include "sphere.h"
-#include "cmdargs.h"
+#include "cmdArgs.h"
 
 #include <iostream>
 #include <chrono>
@@ -14,19 +14,25 @@
 
 // Add average timer later?
 
+// Add --switches: --initial & --FreTest switches to cmdlnargs to allow for different setup states
+// --help to show options
+
+// Add commands to README
+
+// Remember number of spheres is multiplied by 3 ATM
+
 int main()
 {
     // Time the creation of objects
     std::chrono::high_resolution_clock wallClock{};
     auto setupBegin = wallClock.now();
 
-
-    // Store cmdargs in struct (has default values if not provided with args)
-    Cmdargs cmdargs{};
+    // Store cmdArgs in class (has default values if not provided with args)
+    CmdArgs cmdArgs{};
 
 
     Display::Window wnd;
-    wnd.SetSize(cmdargs.windowWidth, cmdargs.windowHeight);
+    wnd.SetSize(cmdArgs.windowWidth, cmdArgs.windowHeight);
     
     if (!wnd.Open())
         return 1;
@@ -35,11 +41,11 @@ int main()
 
     // initial resolution is 200x100
     // is this actual image resolution?
-    framebuffer.resize(cmdargs.imageWidth * cmdargs.imageHeight);
+    framebuffer.resize(cmdArgs.imageWidth * cmdArgs.imageHeight);
 
     // Create Raytracer
+    Raytracer rt = Raytracer(cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces);
 
-    Raytracer rt = Raytracer(cmdargs.imageWidth, cmdargs.imageHeight, framebuffer, cmdargs.raysPerPixel, cmdargs.maxBounces);
 
     // Create some objects
     Material* mat = new Material();
@@ -51,7 +57,7 @@ int main()
 
     // Deterministic random sphere generation
 
-    for (int it = 0; it < cmdargs.numSpheres; it++)
+    for (int it = 0; it < 12; it++)
     {
         {
             Material* mat = new Material();
@@ -177,11 +183,11 @@ int main()
     int frameIndex = 0;
 
     std::vector<Color> framebufferCopy;
-    framebufferCopy.resize(cmdargs.imageWidth * cmdargs.imageHeight);
+    framebufferCopy.resize(cmdArgs.imageWidth * cmdArgs.imageHeight);
 
 
     // Num of Rays per frame
-    float numberMegaRays = framebuffer.size() * (cmdargs.raysPerPixel * 0.000001f);
+    float numberMegaRays = framebuffer.size() * (cmdArgs.raysPerPixel * 0.000001f);
     float megaRaysPerSec = 0.0f;
 
 
@@ -252,7 +258,7 @@ int main()
         glClearColor(0, 0, 0, 1.0);
         glClear( GL_COLOR_BUFFER_BIT );
 
-        wnd.Blit((float*)&framebufferCopy[0], cmdargs.imageWidth, cmdargs.imageHeight);
+        wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
         wnd.SwapBuffers();
 
         // Render timer
