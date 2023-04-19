@@ -33,7 +33,7 @@ SET_PROPERTY(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS GLEW_STATIC)
 ADD_SUBDIRECTORY(exts)
 
 SET(files
-		main.cc
+		simulation.cc
 		window.h
 		window.cc
 		vec3.h

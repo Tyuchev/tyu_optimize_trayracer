@@ -17,6 +17,9 @@ CmdArgs::CmdArgs()
 CmdArgs::CmdArgs(unsigned int envVariables[], unsigned int arraySize)
 {
 	// NEEDS TO BE REWORKED - MAYBE PROFILES? CHECK SWITCHES, INCOMING DATA AND ARRAY SIZE!!!!!
+	// REMEMBER THAT NR OF SPHERES IS ACTUALLY x3
+
+	//CHECK IF BELOW 0
 
 	// Command Line Arg Guards
 	// If user overflows unsigned int behaviour is defined & values should wrap around
@@ -74,13 +77,13 @@ CmdArgs::CmdArgs(unsigned int envVariables[], unsigned int arraySize)
 	//	maxBounces = 10;
 	//}
 
-	//if (spheres <= 100000)
+	//if (spheres <= 20000)
 	//{
 	//	numSpheres = spheres;
 	//}
 	//else
 	//{
-	//	numSpheres = 100000;
+	//	numSpheres = 200000;
 	//}
 
 

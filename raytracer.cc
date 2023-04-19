@@ -67,7 +67,7 @@ Raytracer::TracePath(Ray ray, unsigned n)
     Object* hitObject = nullptr;
     float distance = FLT_MAX;
 
-    if (Raycast(ray, hitPoint, hitNormal, hitObject, distance, this->objects))
+    if (Raycast(ray, hitPoint, hitNormal, hitObject, distance))
     {
         Ray* scatteredRay = new Ray(hitObject->ScatterRay(ray, hitPoint, hitNormal));
         if (n < this->bounces)
@@ -97,9 +97,15 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject,
     HitResult hit;
 
     // First, sort the world objects
-    std::sort(world.begin(), world.end());
+    // WHY - probably remove the below
+    // 
+    //std::sort(world.begin(), world.end());
+
 
     // then add all objects into a remaining objects set of unique objects, so that we don't trace against the same object twice
+
+    // Are we recreating the vectors/storage? in which case this memory wont stick around?? There arent any duplicates in the 'world' vector?
+    // 
     std::vector<Object*> uniqueObjects;
     for (size_t i = 0; i < world.size(); ++i)
     {

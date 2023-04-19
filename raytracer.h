@@ -21,11 +21,8 @@ public:
     // start raytracing!
     void Raytrace();
 
-    // add object to scene
-    void AddObject(Object* obj);
-
     // single raycast, find object
-    static bool Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> objects);
+    bool Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> objects);
 
     // set camera matrix
     void SetViewMatrix(mat4 val);
@@ -65,14 +62,9 @@ public:
     // Go from canonical to view frustum
     mat4 frustum;
 
-private:
-    std::vector<Object*> objects;
+
 };
 
-inline void Raytracer::AddObject(Object* o)
-{
-    this->objects.push_back(o);
-}
 
 inline void Raytracer::SetViewMatrix(mat4 val)
 {

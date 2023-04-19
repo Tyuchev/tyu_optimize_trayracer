@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <chrono>
+#include <vector>
+#include <array>
 
 #define degtorad(angle) angle * MPI / 180
 
@@ -37,83 +39,84 @@ int main()
     if (!wnd.Open())
         return 1;
 
-    std::vector<Color> framebuffer;
 
+    std::vector<Sphere> sphereHolder;
+    sphereHolder.reserve(static_cast<size_t>((static_cast<int>(cmdArgs.numSpheres) * 3) + 1)); // current algorithm is num * 3 plus 1 for the floor
+
+
+    std::vector<Color> framebuffer;
     // initial resolution is 200x100
     // is this actual image resolution?
-    framebuffer.resize(cmdArgs.imageWidth * cmdArgs.imageHeight);
+    framebuffer.resize(static_cast<size_t>(cmdArgs.imageWidth) * static_cast<size_t>(cmdArgs.imageHeight));
+
+
 
     // Create Raytracer
     Raytracer rt = Raytracer(cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces);
 
 
     // Create some objects
-    Material* mat = new Material();
-    mat->type = "Lambertian";
-    mat->color = { 0.5,0.5,0.5 };
-    mat->roughness = 0.3;
-    Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
-    rt.AddObject(ground);
+    Material mat{};
+    mat.type = "Lambertian";
+    mat.color = { 0.5,0.5,0.5 };
+    mat.roughness = 0.3;
+    Sphere sphere{ 1000, vec3{ 0,-1000, -1 }, mat };
+    sphereHolder.push_back(sphere);
+    std::cout << std::endl;
 
     // Deterministic random sphere generation
 
     for (int it = 0; it < 12; it++)
     {
         {
-            Material* mat = new Material();
-                mat->type = "Lambertian";
+            Material mat{};
+                mat.type = "Lambertian";
                 float r = RandomFloat();
                 float g = RandomFloat();
                 float b = RandomFloat();
-                mat->color = { r,g,b };
-                mat->roughness = RandomFloat();
-                const float span = 10.0f;
-                Sphere* ground = new Sphere(
-                    RandomFloat() * 0.7f + 0.2f,
-                    {
-                        RandomFloatNTP() * span,
-                        RandomFloat() * span + 0.2f,
-                        RandomFloatNTP() * span
-                    },
-                    mat);
-            rt.AddObject(ground);
-        }{
-            Material* mat = new Material();
-            mat->type = "Conductor";
+                mat.color = { r,g,b };
+                mat.roughness = RandomFloat();
+                const double span = 10.0f;
+                Sphere sphere{ RandomFloat() * 0.7f + 0.2f, vec3{RandomFloatNTP() * span, RandomFloat() * span + 0.2f, RandomFloatNTP() * span}, mat };
+            sphereHolder.push_back(sphere);
+        }
+        {
+            Material mat{};
+            mat.type = "Conductor";
             float r = RandomFloat();
             float g = RandomFloat();
             float b = RandomFloat();
-            mat->color = { r,g,b };
-            mat->roughness = RandomFloat();
-            const float span = 30.0f;
-            Sphere* ground = new Sphere(
-                RandomFloat() * 0.7f + 0.2f,
-                {
+            mat.color = { r,g,b };
+            mat.roughness = RandomFloat();
+            const double span = 30.0f;
+            Sphere sphere{ RandomFloat() * 0.7f + 0.2f,
+                vec3{
                     RandomFloatNTP() * span,
                     RandomFloat() * span + 0.2f,
                     RandomFloatNTP() * span
                 },
-                mat);
-            rt.AddObject(ground);
-        }{
-            Material* mat = new Material();
-            mat->type = "Dielectric";
+                mat };
+            sphereHolder.push_back(sphere);
+        }
+        {
+            Material mat{};
+            mat.type = "Dielectric";
             float r = RandomFloat();
             float g = RandomFloat();
             float b = RandomFloat();
-            mat->color = { r,g,b };
-            mat->roughness = RandomFloat();
-            mat->refractionIndex = 1.65;
-            const float span = 25.0f;
-            Sphere* ground = new Sphere(
+            mat.color = { r,g,b };
+            mat.roughness = RandomFloat();
+            mat.refractionIndex = 1.65;
+            const double span = 25.0f;
+            Sphere sphere{
                 RandomFloat() * 0.7f + 0.2f,
-                {
+                vec3{
                     RandomFloatNTP() * span,
                     RandomFloat() * span + 0.2f,
                     RandomFloatNTP() * span
                 },
-                mat);
-            rt.AddObject(ground);
+                mat};
+            sphereHolder.push_back(sphere);
         }
     }
     
@@ -183,7 +186,7 @@ int main()
     int frameIndex = 0;
 
     std::vector<Color> framebufferCopy;
-    framebufferCopy.resize(cmdArgs.imageWidth * cmdArgs.imageHeight);
+    framebufferCopy.resize(static_cast<size_t>(cmdArgs.imageWidth)* static_cast<size_t>(cmdArgs.imageHeight));;
 
 
     // Num of Rays per frame
@@ -207,38 +210,40 @@ int main()
     while (wnd.IsOpen() && !exit)
     {
         renderBegin = wallClock.now();
-
         resetFramebuffer = false;
+        
+        //player movement
         moveDir = {0,0,0};
         pitch = 0;
         yaw = 0;
-
         // poll input
         wnd.Update();
 
         rotx -= pitch;
         roty -= yaw;
-
         moveDir = normalize(moveDir);
 
+        // maybe dont recreate these every loop??
         mat4 xMat = (rotationx(rotx));
         mat4 yMat = (rotationy(roty));
         mat4 cameraTransform = multiply(yMat, xMat);
 
         camPos = camPos + transform(moveDir * 0.2f, cameraTransform);
-        
         cameraTransform.m30 = camPos.x;
         cameraTransform.m31 = camPos.y;
         cameraTransform.m32 = camPos.z;
 
         rt.SetViewMatrix(cameraTransform);
         
+
         if (resetFramebuffer)
         {
             rt.Clear();
             frameIndex = 0;
         }
 
+
+        // main raytracing starts here 
         rt.Raytrace();
         frameIndex++;
 
@@ -261,7 +266,11 @@ int main()
         wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
         wnd.SwapBuffers();
 
-        // Render timer
+
+        // End of rendering
+
+
+        // Timers & Debug info
         renderEnd = wallClock.now();
         renderTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - renderBegin)).count() * 0.001;
 
