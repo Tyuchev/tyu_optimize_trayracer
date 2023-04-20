@@ -39,12 +39,12 @@ public:
     
     }
 
-    Color GetColor()
+    Color GetColor() const
     {
         return material.color;
     }
 
-    Optional<HitResult> Intersect(Ray ray, float maxDist) override
+    Optional<HitResult> Intersect(Ray ray, float maxDist) const override
     {
         HitResult hit;
         vec3 oc = ray.b - this->center;
@@ -90,7 +90,7 @@ public:
         return Optional<HitResult>();
     }
 
-    Ray ScatterRay(Ray ray, vec3 point, vec3 normal) override
+    Ray ScatterRay(Ray ray, vec3 point, vec3 normal) const override 
     {
         return BSDF(material, ray, point, normal);
     }

@@ -2,16 +2,18 @@
 #include <random>
 
 #include <chrono>
+#include "sphere.h"
 
 //------------------------------------------------------------------------------
 /**
 */
-Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces) :
+Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects) :
     frameBuffer(frameBuffer),
     rpp(rpp),
     bounces(bounces),
     width(w),
-    height(h)
+    height(h),
+    worldObjects(objects)
 {
     // empty
 }
@@ -64,7 +66,7 @@ Raytracer::TracePath(Ray ray, unsigned n)
 {
     vec3 hitPoint;
     vec3 hitNormal;
-    Object* hitObject = nullptr;
+    const Object* hitObject = nullptr;
     float distance = FLT_MAX;
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance))
@@ -89,55 +91,37 @@ Raytracer::TracePath(Ray ray, unsigned n)
 /**
 */
 bool
-Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
+Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Object*& hitObject, float& distance)
 {
     bool isHit = false;
     HitResult closestHit;
     int numHits = 0;
-    HitResult hit;
-
-    // First, sort the world objects
-    // WHY - probably remove the below
-    // 
-    //std::sort(world.begin(), world.end());
-
-
-    // then add all objects into a remaining objects set of unique objects, so that we don't trace against the same object twice
+    HitResult hitResult;
 
     // Are we recreating the vectors/storage? in which case this memory wont stick around?? There arent any duplicates in the 'world' vector?
-    // 
-    std::vector<Object*> uniqueObjects;
-    for (size_t i = 0; i < world.size(); ++i)
+    
+    // Only thing maybe needs doing is reducing num of spheres we check against? are some behind us maybe?
+    // I think behind culling is already implemented
+
+    for (auto const& object : worldObjects)
     {
-        Object* obj = world[i];
-        std::vector<Object*>::iterator it = std::find_if(uniqueObjects.begin(), uniqueObjects.end(), [obj](const auto& val)
-                {
-                    return (obj->GetName() == val->GetName() && obj->GetId() == val->GetId());
-                }
-            );
+        // does raycast hit an object?
+        auto optional = object.Intersect(ray, closestHit.t);
 
-        if (it == uniqueObjects.end())
+        // If yes:
+        if (optional.HasValue())
         {
-            uniqueObjects.push_back(obj);
-        }
-    }
+            hitResult = optional.Get();
+            if (hitResult.t < closestHit.t)
+            {
+                closestHit = hitResult;
+                closestHit.object = &object;
+                isHit = true;
 
-    while (uniqueObjects.size() > 0)
-    {
-        auto objectIt = uniqueObjects.begin();
-        Object* object = *objectIt;
+                //numHits++;
+            }
 
-        auto opt = object->Intersect(ray, closestHit.t);
-        if (opt.HasValue())
-        {
-            hit = opt.Get();
-            assert(hit.t < closestHit.t);
-            closestHit = hit;
-            closestHit.object = object;
-            isHit = true;
-            numHits++;
         }
-        uniqueObjects.erase(objectIt);
     }
 
     hitPoint = closestHit.p;

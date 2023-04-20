@@ -7,6 +7,7 @@
 #include "object.h"
 #include <float.h>
 
+#include "sphere.h"
 #include <chrono>
 
 //------------------------------------------------------------------------------
@@ -15,14 +16,14 @@
 class Raytracer
 {
 public:
-    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces);
+    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects);
     ~Raytracer() { }
 
     // start raytracing!
     void Raytrace();
 
     // single raycast, find object
-    bool Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> objects);
+    bool Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Object*& hitObject, float& distance);
 
     // set camera matrix
     void SetViewMatrix(mat4 val);
@@ -62,6 +63,8 @@ public:
     // Go from canonical to view frustum
     mat4 frustum;
 
+private:
+    std::vector<Sphere> const &worldObjects;
 
 };
 

@@ -14,14 +14,26 @@
 
 // Uni PC = Ryzen Threadripper PRO 3955wx 16 Cores
 
+// Cull Spheres - behind camera? reduce number of spheres checked against rays
+// Bounding box hierachy?
+
 // Add average timer later?
 
 // Add --switches: --initial & --FreTest switches to cmdlnargs to allow for different setup states
-// --help to show options
+// --help to show options, --debug to show window?
 
 // Add commands to README
 
 // Remember number of spheres is multiplied by 3 ATM
+
+// Add debug mode - shows window
+
+// optimize random code - maybe track static variables using a vector ref?
+
+// change max render distance in hit_point - reduce from FLOAT_MAX to much closer? Maybe set to bounding box area?
+
+// Many objects created & destroyed inside raytracer class - optomize by sending in handles or passing by ref etc
+// even .Get() seems to created too many shared ptrs
 
 int main()
 {
@@ -32,14 +44,24 @@ int main()
     // Store cmdArgs in class (has default values if not provided with args)
     CmdArgs cmdArgs{};
 
+    // Check if DEBUG MODE, --debug was set
+    const bool cmdArgsDEBUG{1};
+    constexpr bool DEBUG_MODE = cmdArgsDEBUG;
 
     Display::Window wnd;
-    wnd.SetSize(cmdArgs.windowWidth, cmdArgs.windowHeight);
-    
-    if (!wnd.Open())
-        return 1;
+    // IF DEBUG
+    if (DEBUG_MODE)
+    {
+        wnd.SetSize(cmdArgs.windowWidth, cmdArgs.windowHeight);
+
+        if (!wnd.Open())
+        {
+            return 1;
+        }
+    }
 
 
+    // Simulation level Sphere holder
     std::vector<Sphere> sphereHolder;
     sphereHolder.reserve(static_cast<size_t>((static_cast<int>(cmdArgs.numSpheres) * 3) + 1)); // current algorithm is num * 3 plus 1 for the floor
 
@@ -52,7 +74,7 @@ int main()
 
 
     // Create Raytracer
-    Raytracer rt = Raytracer(cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces);
+    Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
 
 
     // Create some objects
@@ -121,13 +143,22 @@ int main()
     }
     
     bool exit = false;
-
     // camera
     bool resetFramebuffer = false;
     vec3 camPos = { 0,1.0f,10.0f };
     vec3 moveDir = { 0,0,0 };
 
-    wnd.SetKeyPressFunction([&exit, &moveDir, &resetFramebuffer](int key, int scancode, int action, int mods)
+    float pitch = 0;
+    float yaw = 0;
+    float oldx = 0;
+    float oldy = 0;
+
+    float rotx = 0;
+    float roty = 0;
+
+    if (DEBUG_MODE)
+    {
+        wnd.SetKeyPressFunction([&exit, &moveDir, &resetFramebuffer](int key, int scancode, int action, int mods)
     {
         switch (key)
         {
@@ -162,13 +193,11 @@ int main()
             break;
         }
     });
+    }
 
-    float pitch = 0;
-    float yaw = 0;
-    float oldx = 0;
-    float oldy = 0;
-
-    wnd.SetMouseMoveFunction([&pitch, &yaw, &oldx, &oldy, &resetFramebuffer](double x, double y)
+    if (DEBUG_MODE)
+    {
+        wnd.SetMouseMoveFunction([&pitch, &yaw, &oldx, &oldy, &resetFramebuffer](double x, double y)
     {
         x *= -0.1;
         y *= -0.1;
@@ -178,15 +207,14 @@ int main()
         oldx = x;
         oldy = y;
     });
+    }
 
-    float rotx = 0;
-    float roty = 0;
 
     // number of accumulated frames
     int frameIndex = 0;
 
     std::vector<Color> framebufferCopy;
-    framebufferCopy.resize(static_cast<size_t>(cmdArgs.imageWidth)* static_cast<size_t>(cmdArgs.imageHeight));;
+    framebufferCopy.resize(static_cast<size_t>(cmdArgs.imageWidth) * static_cast<size_t>(cmdArgs.imageHeight));
 
 
     // Num of Rays per frame
@@ -200,48 +228,53 @@ int main()
     std::cout << "Setup Time: " << setupTimer << " seconds" << std::endl;
 
 
-
     // Create time points for render loop
     std::chrono::high_resolution_clock::time_point renderBegin;
     std::chrono::high_resolution_clock::time_point renderEnd;
     double renderTimer{ 0.0 };
 
     // rendering loop
-    while (wnd.IsOpen() && !exit)
+    while (true)
     {
         renderBegin = wallClock.now();
         resetFramebuffer = false;
         
-        //player movement
-        moveDir = {0,0,0};
-        pitch = 0;
-        yaw = 0;
         // poll input
-        wnd.Update();
-
-        rotx -= pitch;
-        roty -= yaw;
-        moveDir = normalize(moveDir);
-
-        // maybe dont recreate these every loop??
-        mat4 xMat = (rotationx(rotx));
-        mat4 yMat = (rotationy(roty));
-        mat4 cameraTransform = multiply(yMat, xMat);
-
-        camPos = camPos + transform(moveDir * 0.2f, cameraTransform);
-        cameraTransform.m30 = camPos.x;
-        cameraTransform.m31 = camPos.y;
-        cameraTransform.m32 = camPos.z;
-
-        rt.SetViewMatrix(cameraTransform);
-        
-
-        if (resetFramebuffer)
+        if (DEBUG_MODE)
         {
-            rt.Clear();
-            frameIndex = 0;
+            //player movement
+            moveDir = {0,0,0};
+            pitch = 0;
+            yaw = 0;
+            wnd.Update();
+
+            rotx -= pitch;
+            roty -= yaw;
+
+            // check if this is needed
+            moveDir = normalize(moveDir);
+
+            // maybe dont recreate these every loop??
+            mat4 xMat = (rotationx(rotx));
+            mat4 yMat = (rotationy(roty));
+            mat4 cameraTransform = multiply(yMat, xMat);
+
+            camPos = camPos + transform(moveDir * 0.2f, cameraTransform);
+            cameraTransform.m30 = camPos.x;
+            cameraTransform.m31 = camPos.y;
+            cameraTransform.m32 = camPos.z;
+
+            rt.SetViewMatrix(cameraTransform);
+
+
+            if (resetFramebuffer)
+            {
+                rt.Clear();
+                frameIndex = 0;
+            }
         }
 
+        
 
         // main raytracing starts here 
         rt.Raytrace();
@@ -259,15 +292,19 @@ int main()
                 p++;
             }
         }
-
-        glClearColor(0, 0, 0, 1.0);
-        glClear( GL_COLOR_BUFFER_BIT );
-
-        wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
-        wnd.SwapBuffers();
+        // End of raytracing
 
 
-        // End of rendering
+        // Present render to window if in DEBUG mode
+        if (DEBUG_MODE)
+        {
+            glClearColor(0, 0, 0, 1.0);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
+            wnd.SwapBuffers();
+        }
+
 
 
         // Timers & Debug info
@@ -284,8 +321,10 @@ int main()
 
 
     // Cleanup
-    if (wnd.IsOpen())
+    if (DEBUG_MODE && wnd.IsOpen())
+    {
         wnd.Close();
+    }
 
 
 

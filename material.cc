@@ -9,7 +9,7 @@
 /**
 */
 Ray
-BSDF(Material& const material, Ray ray, vec3 point, vec3 normal)
+BSDF(Material const &material, Ray ray, vec3 point, vec3 normal)
 {
     float cosTheta = -dot(normalize(ray.m), normalize(normal));
 

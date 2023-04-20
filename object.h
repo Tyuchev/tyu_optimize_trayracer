@@ -17,7 +17,7 @@ struct HitResult
     // normal
     vec3 normal;
     // hit object, or nullptr
-    Object* object = nullptr;
+    const Object* object = nullptr;
     // intersection distance
     float t = FLT_MAX;
 };
@@ -35,31 +35,15 @@ public:
     bool HasValue()
     {
         // check if this object has a value.
-        if (this->hasValue)
+        if (hasValue)
         {
-            // doublecheck the value
-            if (value == nullptr)
-            {
-                return false;
-            }
-            if (value != nullptr)
-            {
-                // doublecheck the value content.
-                if (value->object == nullptr)
-                {
-                    return false;
-                }
-                if (value->normal.IsZero())
-                {
-                    return false;
-                }
-            }
+            return true;
         }
         else
         {
             return false;
         }
-        return true;
+
     }
     HitResult Get()
     {
@@ -88,9 +72,9 @@ public:
 
     }
 
-    virtual Optional<HitResult> Intersect(Ray ray, float maxDist) { return {}; };
-    virtual Color GetColor() = 0;
-    virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) { return Ray({ 0,0,0 }, {1,1,1}); };
+    virtual Optional<HitResult> Intersect(Ray ray, float maxDist) const { return {}; };
+    virtual Color GetColor() const = 0;
+    virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) const { return Ray({ 0,0,0 }, {1,1,1}); };
 
 
 };
