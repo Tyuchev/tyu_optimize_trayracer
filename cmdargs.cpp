@@ -83,7 +83,7 @@ CmdArgs::CmdArgs(unsigned int envVariables[], unsigned int arraySize)
 	//}
 	//else
 	//{
-	//	numSpheres = 200000;
+	//	numSpheres = 20000;
 	//}
 
 
