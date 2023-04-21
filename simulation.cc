@@ -9,6 +9,7 @@
 #include <chrono>
 #include <vector>
 #include <array>
+#include <memory>
 
 #define degtorad(angle) angle * MPI / 180
 
