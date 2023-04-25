@@ -120,13 +120,14 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitO
 
                 //numHits++;
 
-                hitPoint = closestHit.p;
-                hitNormal = closestHit.normal;
-                hitObject = closestHit.sphere;
-                distance = closestHit.t;
             }
 
         }
+
+        hitPoint = closestHit.p;
+        hitNormal = closestHit.normal;
+        hitObject = closestHit.sphere;
+        distance = closestHit.t;
     }
 
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "object.h"
 #include <stdlib.h>
 #include <time.h>
 #include "mat4.h"
@@ -107,6 +106,7 @@ public:
                 return hit;
             }
         }
+        return hit;
     }
 
     Ray ScatterRay(Ray ray, vec3 point, vec3 normal) const  

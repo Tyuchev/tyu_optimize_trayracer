@@ -4,7 +4,6 @@
 #include "mat4.h"
 #include "color.h"
 #include "ray.h"
-#include "object.h"
 #include <float.h>
 
 #include "sphere.h"

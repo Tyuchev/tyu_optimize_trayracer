@@ -143,73 +143,22 @@ int main()
         }
     }
     
-    bool exit = false;
     // camera
+
+    mat4 cameraTransform
+            {1,  0,  0,  0,
+             0,  1, 0,  0,
+             0,  0,  1,  0,
+             0,  0,  0,  1 };
+    
+    mat4 xMat = (rotationx(0));
+    mat4 yMat = (rotationy(180));
+    cameraTransform = multiply(yMat, xMat);
+    cameraTransform.m30 = 0;
+    cameraTransform.m31 = 2;
+    cameraTransform.m32 = 0;
+
     bool resetFramebuffer = false;
-    vec3 camPos = { 0,1.0f,10.0f };
-    vec3 moveDir = { 0,0,0 };
-
-    float pitch = 0;
-    float yaw = 0;
-    float oldx = 0;
-    float oldy = 0;
-
-    float rotx = 0;
-    float roty = 0;
-
-    if (DEBUG_MODE)
-    {
-        wnd.SetKeyPressFunction([&exit, &moveDir, &resetFramebuffer](int key, int scancode, int action, int mods)
-    {
-        switch (key)
-        {
-        case GLFW_KEY_ESCAPE:
-            exit = true;
-            break;
-        case GLFW_KEY_W:
-            moveDir.z -= 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_S:
-            moveDir.z += 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_A:
-            moveDir.x -= 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_D:
-            moveDir.x += 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_SPACE:
-            moveDir.y += 1.0f;
-            resetFramebuffer |= true;
-            break;
-        case GLFW_KEY_LEFT_CONTROL:
-            moveDir.y -= 1.0f;
-            resetFramebuffer |= true;
-            break;
-        default:
-            break;
-        }
-    });
-    }
-
-    if (DEBUG_MODE)
-    {
-        wnd.SetMouseMoveFunction([&pitch, &yaw, &oldx, &oldy, &resetFramebuffer](double x, double y)
-    {
-        x *= -0.1;
-        y *= -0.1;
-        yaw = x - oldx;
-        pitch = y - oldy;
-        resetFramebuffer |= true;
-        oldx = x;
-        oldy = y;
-    });
-    }
-
 
     // number of accumulated frames
     int frameIndex = 0;
@@ -240,42 +189,8 @@ int main()
         renderBegin = wallClock.now();
         resetFramebuffer = false;
         
-        // poll input
-        if (DEBUG_MODE)
-        {
-            //player movement
-            moveDir = {0,0,0};
-            pitch = 0;
-            yaw = 0;
-            wnd.Update();
-
-            rotx -= pitch;
-            roty -= yaw;
-
-            // check if this is needed
-            moveDir = normalize(moveDir);
-
-            // maybe dont recreate these every loop??
-            mat4 xMat = (rotationx(rotx));
-            mat4 yMat = (rotationy(roty));
-            mat4 cameraTransform = multiply(yMat, xMat);
-
-            camPos = camPos + transform(moveDir * 0.2f, cameraTransform);
-            cameraTransform.m30 = camPos.x;
-            cameraTransform.m31 = camPos.y;
-            cameraTransform.m32 = camPos.z;
-
-            rt.SetViewMatrix(cameraTransform);
-
-
-            if (resetFramebuffer)
-            {
-                rt.Clear();
-                frameIndex = 0;
-            }
-        }
-
-        
+        wnd.Update();
+        rt.SetViewMatrix(cameraTransform);
 
         // main raytracing starts here 
         rt.Raytrace();
@@ -296,15 +211,11 @@ int main()
         // End of raytracing
 
 
-        // Present render to window if in DEBUG mode
-        if (DEBUG_MODE)
-        {
-            glClearColor(0, 0, 0, 1.0);
-            glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0, 0, 0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-            wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
-            wnd.SwapBuffers();
-        }
+        wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
+        wnd.SwapBuffers();
 
 
 
