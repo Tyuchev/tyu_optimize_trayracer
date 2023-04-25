@@ -8,25 +8,43 @@
 #include "ray.h"
 #include "material.h"
 
+
+class Sphere;
+
+struct HitResult
+{
+    // hit point
+    vec3 p;
+    // normal
+    vec3 normal;
+    // hit object, or nullptr
+    const Sphere* sphere = nullptr;
+    // intersection distance
+    float t = FLT_MAX;
+};
+
+
 // returns a random point on the surface of a unit sphere
 inline vec3 random_point_on_unit_sphere()
 {
     float x = RandomFloatNTP();
     float y = RandomFloatNTP();
     float z = RandomFloatNTP();
-    vec3 v( x, y, z );
+    vec3 v(x, y, z);
     return normalize(v);
-}
+};
+
 
 // a spherical object
-class Sphere : public Object
+class Sphere
 {
+
 public:
     float radius;
     vec3 center;
     Material const material;
 
-    Sphere(float radius, vec3 center, Material const material) : 
+    Sphere(float radius, vec3 center, Material const material) :
         radius(radius),
         center(center),
         material(material)
@@ -34,26 +52,29 @@ public:
 
     }
 
-    ~Sphere() override
+    ~Sphere()
     {
     
     }
 
-    Color GetColor() const
+
+    void GetColor(Color& inputColorBuffer) const 
     {
-        return material.color;
+        inputColorBuffer = material.color;
     }
 
-    Optional<HitResult> Intersect(Ray ray, float maxDist) const override
+    HitResult Intersect(Ray ray, float maxDist) const
     {
         HitResult hit;
         vec3 oc = ray.b - this->center;
         vec3 dir = ray.m;
         float b = dot(oc, dir);
-    
+
         // early out if sphere is "behind" ray
         if (b > 0)
-            return Optional<HitResult>();
+        {
+            return hit;
+        }
 
         float a = dot(dir, dir);
         float c = dot(oc, oc) - this->radius * this->radius;
@@ -73,8 +94,8 @@ public:
                 hit.p = p;
                 hit.normal = (p - this->center) * (1.0f / this->radius);
                 hit.t = temp;
-                hit.object = this;
-                return Optional<HitResult>(hit);
+                hit.sphere = this;
+                return hit;
             }
             if (temp2 < maxDist && temp2 > minDist)
             {
@@ -82,17 +103,19 @@ public:
                 hit.p = p;
                 hit.normal = (p - this->center) * (1.0f / this->radius);
                 hit.t = temp2;
-                hit.object = this;
-                return Optional<HitResult>(hit);
+                hit.sphere = this;
+                return hit;
             }
         }
-
-        return Optional<HitResult>();
     }
 
-    Ray ScatterRay(Ray ray, vec3 point, vec3 normal) const override 
+    Ray ScatterRay(Ray ray, vec3 point, vec3 normal) const  
     {
         return BSDF(material, ray, point, normal);
     }
 
+
 };
+
+
+

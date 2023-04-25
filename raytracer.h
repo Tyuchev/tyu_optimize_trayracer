@@ -23,7 +23,7 @@ public:
     void Raytrace();
 
     // single raycast, find object
-    bool Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Object*& hitObject, float& distance);
+    bool Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject, float& distance);
 
     // set camera matrix
     void SetViewMatrix(mat4 val);

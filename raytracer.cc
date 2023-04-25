@@ -61,12 +61,11 @@ Raytracer::Raytrace()
 /**
  * @parameter n - the current bounce level
 */
-Color
-Raytracer::TracePath(Ray ray, unsigned n)
+Color Raytracer::TracePath(Ray ray, unsigned n)
 {
     vec3 hitPoint;
     vec3 hitNormal;
-    const Object* hitObject = nullptr;
+    const Sphere* hitObject = nullptr;
     float distance = FLT_MAX;
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance))
@@ -74,7 +73,9 @@ Raytracer::TracePath(Ray ray, unsigned n)
         Ray* scatteredRay = new Ray(hitObject->ScatterRay(ray, hitPoint, hitNormal));
         if (n < this->bounces)
         {
-            return hitObject->GetColor() * this->TracePath(*scatteredRay, n + 1);
+            Color colorHandle;
+            hitObject->GetColor(colorHandle);
+            return colorHandle * this->TracePath(*scatteredRay, n + 1);
         }
         delete scatteredRay;
 
@@ -91,14 +92,13 @@ Raytracer::TracePath(Ray ray, unsigned n)
 /**
 */
 bool
-Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Object*& hitObject, float& distance)
+Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject, float& distance)
 {
     bool isHit = false;
     HitResult closestHit;
     int numHits = 0;
     HitResult hitResult;
 
-    // Are we recreating the vectors/storage? in which case this memory wont stick around?? There arent any duplicates in the 'world' vector?
     
     // Only thing maybe needs doing is reducing num of spheres we check against? are some behind us maybe?
     // I think behind culling is already implemented
@@ -106,28 +106,30 @@ Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Object*& hitO
     for (auto const& object : worldObjects)
     {
         // does raycast hit an object?
-        auto optional = object.Intersect(ray, closestHit.t);
+        HitResult rayTest = object.Intersect(ray, closestHit.t);
 
         // If yes:
-        if (optional.HasValue())
+        if (rayTest.sphere)
         {
-            hitResult = optional.Get();
+            hitResult = rayTest;
             if (hitResult.t < closestHit.t)
             {
                 closestHit = hitResult;
-                closestHit.object = &object;
+                closestHit.sphere = &object;
                 isHit = true;
 
                 //numHits++;
+
+                hitPoint = closestHit.p;
+                hitNormal = closestHit.normal;
+                hitObject = closestHit.sphere;
+                distance = closestHit.t;
             }
 
         }
     }
 
-    hitPoint = closestHit.p;
-    hitNormal = closestHit.normal;
-    hitObject = closestHit.object;
-    distance = closestHit.t;
+
     
     return isHit;
 }
