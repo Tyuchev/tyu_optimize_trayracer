@@ -13,6 +13,7 @@ struct mat4
     float m10, m11, m12, m13;
     float m20, m21, m22, m23;
     float m30, m31, m32, m33;
+
 };
 
 //------------------------------------------------------------------------------
@@ -51,32 +52,6 @@ get_position(mat4 m)
     return { m.m30, m.m31, m.m32 };
 }
 
-//------------------------------------------------------------------------------
-/**
-    transform vector with matrix basis
-*/
-inline vec3
-transform(vec3 v, mat4 m)
-{
-    //swizzle!
-    //this should be easy to vectorize! ;)
-    vec3 x = {v.x, v.x, v.x};
-    vec3 y = {v.y, v.y, v.y};
-    vec3 z = {v.z, v.z, v.z};
-    vec3 r0 = { m.m00, m.m01, m.m02 };
-    vec3 r1 = { m.m10, m.m11, m.m12 };
-    vec3 r2 = { m.m20, m.m21, m.m22 };
-    // multiply
-    
-    vec3 a = x.mul(r0);
-    vec3 b = y.mul(r1);
-    vec3 c = z.mul(r2);
-    // add
-    vec3 res = a.mul(b);
-    res = res.add(c);
-
-    return res;
-}
 
 //------------------------------------------------------------------------------
 /**

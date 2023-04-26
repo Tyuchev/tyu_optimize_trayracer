@@ -20,7 +20,7 @@ struct Material
     float roughness = 0.75;
 
     // this is only needed for dielectric materials.
-    float refractionIndex = 1.44;
+    float refractionIndex = 1.65;
 };
 
 //------------------------------------------------------------------------------

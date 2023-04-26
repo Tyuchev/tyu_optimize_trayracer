@@ -5,6 +5,8 @@
 #include "sphere.h"
 #include "random.h"
 
+#include <iostream>
+
 //------------------------------------------------------------------------------
 /**
 */
@@ -15,36 +17,71 @@ BSDF(Material const &material, Ray& ray, vec3& point, vec3& normal)
 
     if (material.type != "Dielectric")
     {
-        float F0 = 0.04f;
-        if (material.type == "Conductor")
+        if (material.type == "Lambertian")
         {
-            F0 = 0.95f;
-        }
+            float F0 = 0.04f;
+            // simplified Fresnel Schlick
+            float F = F0 + ((1.0f - material.roughness) - F0) * pow(2, ((-5.55473f * cosTheta - 6.98316f) * cosTheta));
 
-        // probability that a ray will reflect on a microfacet
-        float F = FresnelSchlick(cosTheta, F0, material.roughness);
+            // The below 'if' checks against an approximate value - F is only larger than a 'random number' a small % of the time
+            // However 'F' can go above 1 under certain circumstances
+            if (F < 0.96f)
+            {
+                vec3 temp = normal + random_point_on_unit_sphere();
+                return { point, temp };
+            }
+            else
+            {
 
-        float r = RandomFloat();
+                mat4 basis = TBN(normal);
+                // importance sample with brdf specular lobe
+                vec3 H = ImportanceSampleGGX_VNDF(RandomFloat(), RandomFloat(), material.roughness, ray.rayDirection, basis);
+                vec3 reflected = ray.rayDirection.reflect(H);
+                return { point, reflected };
 
-        if (r < F)
-        {
-            mat4 basis = TBN(normal);
-            // importance sample with brdf specular lobe
-            vec3 H = ImportanceSampleGGX_VNDF(RandomFloat(), RandomFloat(), material.roughness, ray.rayDirection, basis);
-            vec3 reflected = ray.rayDirection.reflect(H);
-            return { point, reflected };
+            }
         }
         else
         {
-            vec3 temp = normal + random_point_on_unit_sphere();
-            return { point, temp };
+            // F0 for Conductor material types
+            //float F0 = 0.95f;
+            
+            // Fresnel Schlick removed, as 99.9% of the time it will just produce F0 with our specified F0
+             
+            // probability that a ray will reflect on a microfacet is 95% in our sim
+
+            float temp = point.x;
+            if (temp < 0)
+            {
+                temp *= -1;
+            }
+
+            // Rough approximation of a 5% chance - However only rays making contact at the edge of the screen will hit the else statement
+            if (temp < 97.0f)
+            {
+                mat4 basis = TBN(normal);
+                // importance sample with brdf specular lobe
+                vec3 H = ImportanceSampleGGX_VNDF(RandomFloat(), RandomFloat(), material.roughness, ray.rayDirection, basis);
+                vec3 reflected = ray.rayDirection.reflect(H);
+                return { point, reflected };
+            }
+            else
+            {
+                vec3 temp = normal + random_point_on_unit_sphere();
+                return { point, temp };
+            }
+
+
+
         }
+
+
     }
     else
     {
-        vec3 outwardNormal{1,1,1};
+        vec3 outwardNormal;
         float niOverNt;
-        vec3 refracted{1,1,1};
+        vec3 refracted;
         float reflect_prob;
         float cosine;
         vec3 rayDir = ray.rayDirection;
@@ -65,14 +102,22 @@ BSDF(Material const &material, Ray& ray, vec3& point, vec3& normal)
         if (Refract(rayDir, outwardNormal, niOverNt, refracted))
         {
             // fresnel reflectance at 0 deg incidence angle
-            float F0 = powf(material.refractionIndex - 1, 2) / powf(material.refractionIndex + 1, 2);
-            reflect_prob = FresnelSchlick(cosine, F0, material.roughness);
+            // 
+            // float F0 = powf(material.refractionIndex - 1, 2) / powf(material.refractionIndex + 1, 2);
+            
+            // As we only have one refraction index, it can be pre-computed
+            float F0 = 0.06016f;
+            // Simplify Fresnel Schlick
+            reflect_prob = F0 + (((1.0f - material.roughness) - F0) * pow(2, ((-5.55473f * cosTheta - 6.98316f) * cosTheta)));
         }
         else
         {
-            reflect_prob = 1.0;
+            //TO ensure definitively positive
+            reflect_prob = 2.0;
         }
-        if (RandomFloat() < reflect_prob)
+
+        // Reflection_prob is often above 1, otherwise its tiny (using initial settings)
+        if (reflect_prob > 1)
         {
             vec3 reflected = rayDir.reflect(normal);
             return { point, reflected };

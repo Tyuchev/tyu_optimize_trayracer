@@ -25,6 +25,7 @@ void
 Raytracer::Raytrace()
 {
     // I thought leet code was banned xD
+    // Could we use a better random generator ???
     static int leet = 1337;
     std::mt19937 generator (leet++);
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
@@ -36,11 +37,11 @@ Raytracer::Raytrace()
             Color color;
             for (int i = 0; i < this->rpp; ++i)
             {
+                // Maybe this distribution coud be improved??
                 float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
                 float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
 
-                vec3 castDirection = vec3(u, v, 1.0f);
-                //castDirection = transform(castDirection, this->frustum);
+                vec3 castDirection{ u, v, 1.0f };
 
                 //Not sure about get pos
                 Ray ray{ get_position(this->view), castDirection};

@@ -52,10 +52,11 @@ public:
     {
         double l = this->len();
 
-        vec3 ret{ this->x / l, this->y / l, this->z / l };
+        vec3 ret{ this->x * 1/ l, this->y * 1/l, this->z * 1/l };
         return ret;
     }
 
+    // sets storelength to the length of the original vector
     vec3 normalize(double& storeLength) const
     {
         storeLength = this->len();

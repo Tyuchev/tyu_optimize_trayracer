@@ -12,6 +12,7 @@ public:
         rayDirection(dir),
         magnitude(0)
     {
+        // sets magnitude to the length of the original ray
         rayDirection = rayDirection.normalize(magnitude);
     }
 
