@@ -41,10 +41,10 @@ Raytracer::Raytrace()
 
                 vec3 direction = vec3(u, v, -1.0f);
                 direction = transform(direction, this->frustum);
-                
-                Ray* ray = new Ray(get_position(this->view), direction);
-                color += this->TracePath(*ray, 0);
-                delete ray;
+
+                //Not sure about get pos
+                Ray ray{ get_position(this->view), direction};
+                color += this->TracePath(ray, 0);
             }
 
             // divide by number of samples per pixel, to get the average of the distribution
@@ -61,7 +61,7 @@ Raytracer::Raytrace()
 /**
  * @parameter n - the current bounce level
 */
-Color Raytracer::TracePath(Ray ray, unsigned n)
+Color Raytracer::TracePath(Ray& ray, unsigned n)
 {
     vec3 hitPoint;
     vec3 hitNormal;
@@ -70,14 +70,13 @@ Color Raytracer::TracePath(Ray ray, unsigned n)
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance))
     {
-        Ray* scatteredRay = new Ray(hitObject->ScatterRay(ray, hitPoint, hitNormal));
+        Ray scatteredRay{ hitObject->ScatterRay(ray, hitPoint, hitNormal) };
         if (n < this->bounces)
         {
             Color colorHandle;
             hitObject->GetColor(colorHandle);
-            return colorHandle * this->TracePath(*scatteredRay, n + 1);
+            return colorHandle * this->TracePath(scatteredRay, n + 1);
         }
-        delete scatteredRay;
 
         if (n == this->bounces)
         {
@@ -85,14 +84,14 @@ Color Raytracer::TracePath(Ray ray, unsigned n)
         }
     }
 
-    return this->Skybox(ray.m);
+    return this->Skybox(ray.direction * ray.magnitude);
 }
 
 //------------------------------------------------------------------------------
 /**
 */
 bool
-Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject, float& distance)
+Raytracer::Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject, float& distance)
 {
     bool isHit = false;
     HitResult closestHit;
@@ -168,6 +167,6 @@ Color
 Raytracer::Skybox(vec3 direction)
 {
     float t = 0.5*(direction.y + 1.0);
-    vec3 vec = vec3(1.0, 1.0, 1.0) * (1.0 - t) + vec3(0.5, 0.7, 1.0) * t;
+    vec3 vec = vec3(1.0 - t, 1.0 - t, 1.0 - t) + vec3(0.5 * t, 0.7 * t, t);
     return {(float)vec.x, (float)vec.y, (float)vec.z};
 }

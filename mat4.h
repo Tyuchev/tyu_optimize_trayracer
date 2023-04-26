@@ -67,12 +67,14 @@ transform(vec3 v, mat4 m)
     vec3 r1 = { m.m10, m.m11, m.m12 };
     vec3 r2 = { m.m20, m.m21, m.m22 };
     // multiply
-    vec3 a = mul(x, r0);
-    vec3 b = mul(y, r1);
-    vec3 c = mul(z, r2);
+    
+    vec3 a = x.mul(r0);
+    vec3 b = y.mul(r1);
+    vec3 c = z.mul(r2);
     // add
-    vec3 res = add(a,b);
-    res = add(res,c);
+    vec3 res = a.mul(b);
+    res = res.add(c);
+
     return res;
 }
 

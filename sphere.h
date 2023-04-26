@@ -30,7 +30,7 @@ inline vec3 random_point_on_unit_sphere()
     float y = RandomFloatNTP();
     float z = RandomFloatNTP();
     vec3 v(x, y, z);
-    return normalize(v);
+    return v ;
 };
 
 
@@ -48,7 +48,6 @@ public:
         center(center),
         material(material)
     {
-
     }
 
     ~Sphere()
@@ -65,9 +64,9 @@ public:
     HitResult Intersect(Ray ray, float maxDist) const
     {
         HitResult hit;
-        vec3 oc = ray.b - this->center;
-        vec3 dir = ray.m;
-        float b = dot(oc, dir);
+        vec3 oc = ray.start - this->center;
+        vec3 dir = ray.direction * ray.magnitude;
+        float b = oc.dot(dir); 
 
         // early out if sphere is "behind" ray
         if (b > 0)
@@ -75,8 +74,8 @@ public:
             return hit;
         }
 
-        float a = dot(dir, dir);
-        float c = dot(oc, oc) - this->radius * this->radius;
+        float a = dir.dot(dir);
+        float c = oc.dot(oc) - this->radius * this->radius;
         float discriminant = b * b - a * c;
 
         if (discriminant > 0)
@@ -109,7 +108,7 @@ public:
         return hit;
     }
 
-    Ray ScatterRay(Ray ray, vec3 point, vec3 normal) const  
+    Ray ScatterRay(Ray& ray, vec3& point, vec3& normal) const  
     {
         return BSDF(material, ray, point, normal);
     }

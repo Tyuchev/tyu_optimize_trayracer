@@ -8,33 +8,15 @@
 class vec3
 {
 public:
-    vec3() : x(0), y(0), z(0)
+    vec3()
+        :x(1), y(1), z(1)
     {
-        this->UpdateIsNormalizedVariable();
-        this->UpdateIsZeroVariable();
+
     }
 
     vec3(double x, double y, double z) : x(x), y(y), z(z)
     {
-        this->UpdateIsNormalizedVariable();
-        this->UpdateIsZeroVariable();
-    }
 
-    vec3(std::initializer_list<double> const il)
-    {
-        assert(il.size() == 3);
-
-        int i = 0;
-        for (auto v : il)
-        {
-            double* d = reinterpret_cast<double*>(this);
-            d += i;
-            *d = v;
-            i++;
-        }
-
-        this->UpdateIsNormalizedVariable();
-        this->UpdateIsZeroVariable();
     }
 
     ~vec3()
@@ -46,9 +28,6 @@ public:
         this->x = rhs.x;
         this->y = rhs.y;
         this->z = rhs.z;
-
-        this->UpdateIsNormalizedVariable();
-        this->UpdateIsZeroVariable();
     }
 
     vec3 operator+(vec3 const& rhs) { return {x + rhs.x, y + rhs.y, z + rhs.z};}
@@ -58,94 +37,62 @@ public:
 
     double x, y, z;
 
-    bool IsNormalized()
+    // Get length of 3D vector
+    double len() const
     {
-        return this->isNormalized;
+        double a = this->x * this->x;
+        a = a + this->y * this->y;
+        a = a + this->z * this->z;
+        double l = sqrt(a);
+        return l;
     }
 
-    bool IsZero()
+
+    vec3 normalize() const
     {
-        return this->isZero;
+        double l = this->len();
+
+        vec3 ret{ this->x / l, this->y / l, this->z / l };
+        return ret;
     }
 
-private:
-    // Calculate if the vector is normalized
-    void UpdateIsNormalizedVariable();
-    // Calculate if the vector is zero
-    void UpdateIsZeroVariable();
+    vec3 normalize(float& storeLength) const
+    {
+        storeLength = this->len();
 
-    volatile bool isNormalized;
-    volatile bool isZero;
+        vec3 ret{ this->x / storeLength, this->y / storeLength, this->z / storeLength };
+        return ret;
+    }
+
+    // piecewise multiplication between two vectors
+    vec3 mul(vec3& rhs) const
+    {
+        return { this->x * rhs.x, this->y * rhs.y, this->z * rhs.z };
+    }
+
+    // piecewise add between two vectors
+    vec3 add(vec3& rhs) const
+    {
+        return { this->x + rhs.x, this->y + rhs.y, this->z + rhs.z };
+    }
+
+    float dot(vec3& rhs) const
+    {
+        return this->x * rhs.x + this->y * rhs.y + this->z * rhs.z;
+    }
+
+    vec3 reflect(vec3& rhs) const
+    {
+        vec3 lhs = *this;
+        return lhs - rhs * (2 * dot(rhs));
+    }
+
+    vec3 cross(vec3& rhs) const
+    {
+        return { this->y * rhs.z - this->z * rhs.y,
+                 this->z * rhs.x - this->x * rhs.z,
+                 this->x * rhs.y - this->y * rhs.x, };
+    }
+
 };
 
-// Get length of 3D vector
-inline double len(vec3 const& v)
-{
-    double a = v.x * v.x;
-    a = a + v.y * v.y;
-    a = a + v.z * v.z;
-    double l = sqrt(a);
-    return l;
-}
-
-// Get normalized version of v
-inline vec3 normalize(vec3 v)
-{
-    double l = len(v);
-    if (l == 0)
-        return vec3(0,0,0);
-
-    vec3 ret = vec3(v.x / l, v.y / l, v.z / l);
-    return vec3(ret);
-}
-
-inline void vec3::UpdateIsNormalizedVariable()
-{
-    if (len(*this) == 1.0)
-    {
-        this->isNormalized = true;
-        return;
-    }
-    
-    this->isNormalized = false;
-}
-
-inline void vec3::UpdateIsZeroVariable()
-{
-    if (len(*this) == 0.0)
-    {
-        this->isZero = true;
-        return;
-    }
-    
-    this->isZero = false;
-}
-
-// piecewise multiplication between two vectors
-inline vec3 mul(vec3 a, vec3 b)
-{
-    return {a.x * b.x, a.y * b.y, a.z * b.z};
-}
-
-// piecewise add between two vectors
-inline vec3 add(vec3 a, vec3 b)
-{
-    return {a.x + b.x, a.y + b.y, a.z + b.z};
-}
-
-inline float dot(vec3 a, vec3 b)
-{
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-inline vec3 reflect(vec3 v, vec3 n)
-{
-    return v - n * (2 * dot(v,n));
-}
-
-inline vec3 cross(vec3 a, vec3 b)
-{
-    return { a.y * b.z - a.z * b.y,
-             a.z * b.x - a.x * b.z,
-             a.x * b.y - a.y * b.x, };
-}

@@ -9,9 +9,9 @@
 /**
 */
 Ray
-BSDF(Material const &material, Ray ray, vec3 point, vec3 normal)
+BSDF(Material const &material, Ray& ray, vec3& point, vec3& normal)
 {
-    float cosTheta = -dot(normalize(ray.m), normalize(normal));
+    float cosTheta = -(ray.direction.dot(normal));
 
     if (material.type != "Dielectric")
     {
@@ -30,38 +30,39 @@ BSDF(Material const &material, Ray ray, vec3 point, vec3 normal)
         {
             mat4 basis = TBN(normal);
             // importance sample with brdf specular lobe
-            vec3 H = ImportanceSampleGGX_VNDF(RandomFloat(), RandomFloat(), material.roughness, ray.m, basis);
-            vec3 reflected = reflect(ray.m, H);
-            return { point, normalize(reflected) };
+            vec3 H = ImportanceSampleGGX_VNDF(RandomFloat(), RandomFloat(), material.roughness, ray.direction, basis);
+            vec3 reflected = ray.direction.reflect(H);
+            return { point, reflected };
         }
         else
         {
-            return { point, normalize(normalize(normal) + random_point_on_unit_sphere()) };
+            vec3 temp = normal + random_point_on_unit_sphere();
+            return { point, temp };
         }
     }
     else
     {
-        vec3 outwardNormal;
+        vec3 outwardNormal{1,1,1};
         float niOverNt;
-        vec3 refracted;
+        vec3 refracted{1,1,1};
         float reflect_prob;
         float cosine;
-        vec3 rayDir = ray.m;
+        vec3 rayDir = ray.direction;
 
         if (cosTheta <= 0)
         {
             outwardNormal = -normal;
             niOverNt = material.refractionIndex;
-            cosine = cosTheta * niOverNt / len(rayDir);
+            cosine = cosTheta * niOverNt / ray.magnitude;
         }
         else
         {
             outwardNormal = normal;
             niOverNt = 1.0 / material.refractionIndex;
-            cosine = cosTheta / len(rayDir);
+            cosine = cosTheta / ray.magnitude;
         }
 
-        if (Refract(normalize(rayDir), outwardNormal, niOverNt, refracted))
+        if (Refract(rayDir, outwardNormal, niOverNt, refracted))
         {
             // fresnel reflectance at 0 deg incidence angle
             float F0 = powf(material.refractionIndex - 1, 2) / powf(material.refractionIndex + 1, 2);
@@ -73,7 +74,7 @@ BSDF(Material const &material, Ray ray, vec3 point, vec3 normal)
         }
         if (RandomFloat() < reflect_prob)
         {
-            vec3 reflected = reflect(rayDir, normal);
+            vec3 reflected = rayDir.reflect(normal);
             return { point, reflected };
         }
         else

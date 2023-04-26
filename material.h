@@ -27,4 +27,4 @@ struct Material
 /**
     Scatter ray against material
 */
-Ray BSDF(Material const &material, Ray ray, vec3 point, vec3 normal);
+Ray BSDF(Material const &material, Ray& ray, vec3& point, vec3& normal);
