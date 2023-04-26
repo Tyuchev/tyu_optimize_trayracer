@@ -65,7 +65,7 @@ public:
     {
         HitResult hit;
         vec3 oc = ray.start - this->center;
-        vec3 dir = ray.direction * ray.magnitude;
+        vec3 dir = ray.rayDirection;
         float b = oc.dot(dir); 
 
         // early out if sphere is "behind" ray

@@ -9,10 +9,10 @@ class Ray
 public:
     Ray(vec3 startpoint, vec3 dir) :
         start(startpoint),
-        direction(dir),
+        rayDirection(dir),
         magnitude(0)
     {
-        direction = direction.normalize(magnitude);
+        rayDirection = rayDirection.normalize(magnitude);
     }
 
     ~Ray()
@@ -22,13 +22,13 @@ public:
 
     vec3 PointAt(float t)
     {
-        return {start + direction * t};
+        return {start + rayDirection * t};
     }
 
     // beginning of ray
     vec3 start;
     // magnitude and direction of ray
-    vec3 direction;
+    vec3 rayDirection;
 
-    float magnitude;
+    double magnitude;
 };

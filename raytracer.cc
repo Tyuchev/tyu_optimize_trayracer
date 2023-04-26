@@ -39,11 +39,11 @@ Raytracer::Raytrace()
                 float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
                 float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
 
-                vec3 direction = vec3(u, v, -1.0f);
-                direction = transform(direction, this->frustum);
+                vec3 castDirection = vec3(u, v, 1.0f);
+                //castDirection = transform(castDirection, this->frustum);
 
                 //Not sure about get pos
-                Ray ray{ get_position(this->view), direction};
+                Ray ray{ get_position(this->view), castDirection};
                 color += this->TracePath(ray, 0);
             }
 
@@ -84,7 +84,7 @@ Color Raytracer::TracePath(Ray& ray, unsigned n)
         }
     }
 
-    return this->Skybox(ray.direction * ray.magnitude);
+    return this->Skybox(ray.rayDirection * ray.magnitude);
 }
 
 //------------------------------------------------------------------------------

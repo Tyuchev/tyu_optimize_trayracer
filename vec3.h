@@ -56,7 +56,7 @@ public:
         return ret;
     }
 
-    vec3 normalize(float& storeLength) const
+    vec3 normalize(double& storeLength) const
     {
         storeLength = this->len();
 
