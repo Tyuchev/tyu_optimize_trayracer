@@ -10,6 +10,14 @@ CmdArgs::CmdArgs()
 	: windowWidth(1024), windowHeight(768), imageWidth(200), imageHeight(100), raysPerPixel(1), maxBounces(5), numSpheres(12)
 {
 	// blank
+	// Number of spheres is actually multiplied by 3 - therefore initial test has 12 * 3 = 36 spheres
+}
+
+CmdArgs::CmdArgs(int a) // a is discarded
+	: windowWidth(1000), windowHeight(500), imageWidth(1000), imageHeight(500), raysPerPixel(20), maxBounces(5), numSpheres(3334)
+{
+	// Number of spheres is actually multiplied by 3 - therefore initial test has 3334 * 3 = 10002 spheres
+	// blank
 }
 
 

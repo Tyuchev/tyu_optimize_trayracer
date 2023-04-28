@@ -206,11 +206,11 @@ rotationx(float angle)
 		s = 0;
 	}
 	else{
-		result = (angle*MPI / 180.0f);
-		s = sin(result);		
+		result = (angle* MPI / 180.0f);
+		s = sinf(result);
 	}
 
-	c = cos(result);
+	c = std::cosf(result);
 
 	return { 1,  0,  0,  0,
              0,  c, -s,  0,
@@ -234,10 +234,10 @@ rotationy(float angle)
 	}
 	else{
 		result = (angle*MPI / 180.0f);
-		s = sin(result);
+		s = sinf(result);
 	}
 
-	c = cos(result);
+	c = std::cosf(result);
 
 	return {  c, 0, s, 0,
 			  0, 1, 0, 0,

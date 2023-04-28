@@ -10,6 +10,7 @@
 #include <vector>
 #include <array>
 #include <memory>
+#include <cmath>
 
 #define degtorad(angle) angle * MPI / 180
 
@@ -46,20 +47,25 @@ int main()
     CmdArgs cmdArgs{};
 
     // Check if DEBUG MODE, --debug was set
-    const bool cmdArgsDEBUG{1};
-    constexpr bool DEBUG_MODE = cmdArgsDEBUG;
+    // Not sure how to properly have multiple modes
+    // 
+    //const bool cmdArgsDEBUG{1};
+    //constexpr bool DEBUG_MODE = cmdArgsDEBUG;
+
+#define DEBUG 1
+
+
+#ifdef DEBUG
 
     Display::Window wnd;
-    // IF DEBUG
-    if (DEBUG_MODE)
-    {
-        wnd.SetSize(cmdArgs.windowWidth, cmdArgs.windowHeight);
+    wnd.SetSize(cmdArgs.windowWidth, cmdArgs.windowHeight);
 
-        if (!wnd.Open())
-        {
-            return 1;
-        }
+    if (!wnd.Open())
+    {
+        return 1;
     }
+
+#endif // DEBUG Window
 
 
     // Simulation level Sphere holder
@@ -89,7 +95,7 @@ int main()
 
     // Deterministic random sphere generation
 
-    for (int it = 0; it < 12; it++)
+    for (int it = 0; it < cmdArgs.numSpheres; it++) // num Spheres * 3 
     {
         {
             Material mat{};
@@ -100,7 +106,7 @@ int main()
                 mat.color = { r,g,b };
                 mat.roughness = RandomFloat();
                 const double span = 10.0f;
-                Sphere sphere{ RandomFloat() * 0.7f + 0.2f, vec3{RandomFloatNTP() * span, RandomFloat() * span + 0.2f, RandomFloatNTP() * span}, mat };
+                Sphere sphere{ RandomFloat() * 1.5f + 0.5f, vec3{RandomFloatNTP() * span, RandomFloat() * span + 0.2f, RandomFloatNTP() * span}, mat };
             sphereHolder.push_back(sphere);
         }
         {
@@ -112,7 +118,7 @@ int main()
             mat.color = { r,g,b };
             mat.roughness = RandomFloat();
             const double span = 30.0f;
-            Sphere sphere{ RandomFloat() * 0.7f + 0.2f,
+            Sphere sphere{ RandomFloat() * 1.5f + 0.5f,
                 vec3{
                     RandomFloatNTP() * span,
                     RandomFloat() * span + 0.2f,
@@ -129,10 +135,9 @@ int main()
             float b = RandomFloat();
             mat.color = { r,g,b };
             mat.roughness = RandomFloat();
-            mat.refractionIndex = 1.65;
             const double span = 25.0f;
             Sphere sphere{
-                RandomFloat() * 0.7f + 0.2f,
+                RandomFloat() * 1.5f + 0.5f,
                 vec3{
                     RandomFloatNTP() * span,
                     RandomFloat() * span + 0.2f,
@@ -144,7 +149,6 @@ int main()
     }
     
     // camera
-
     mat4 cameraTransform
             {1,  0,  0,  0,
              0,  1, 0,  0,
@@ -152,8 +156,21 @@ int main()
              0,  0,  0,  1 };
 
     cameraTransform.m30 = 0;
-    cameraTransform.m31 = 5;
+    cameraTransform.m31 = 10;
     cameraTransform.m32 = 0;
+
+    // Camera operations dont seem to work properly
+    // Work is on hold as Ive wasted too much time on this
+    // 
+    //float rotx = 0.0f;
+    //float roty = 100.0f;
+    //mat4 xMat{ (rotationx(rotx)) };
+    //mat4 yMat{ (rotationy(roty)) };
+    //mat4 cameraTransform{ multiply(yMat, xMat) };
+    //cameraTransform.m30 = 0;
+    //cameraTransform.m31 = 10;
+    //cameraTransform.m32 = 0;
+
 
     bool resetFramebuffer = false;
 
@@ -186,8 +203,17 @@ int main()
         renderBegin = wallClock.now();
         resetFramebuffer = false;
         
+
+#ifdef DEBUG
         wnd.Update();
+#endif
+
+
+        // Likely not required - was trying to get the camera to work...
         rt.SetViewMatrix(cameraTransform);
+        //resetFramebuffer |= true;
+
+
 
         // main raytracing starts here 
         rt.Raytrace();
@@ -211,9 +237,11 @@ int main()
         glClearColor(0, 0, 0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
 
+
+#ifdef DEBUG
         wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
         wnd.SwapBuffers();
-
+#endif // DEBUG
 
 
         // Timers & Debug info
@@ -229,11 +257,14 @@ int main()
     }
 
 
+
     // Cleanup
-    if (DEBUG_MODE && wnd.IsOpen())
-    {
-        wnd.Close();
-    }
+
+#ifdef DEBUG
+    wnd.Close();
+#endif // DEBUG
+
+
 
 
 
