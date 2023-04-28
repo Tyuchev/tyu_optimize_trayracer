@@ -150,10 +150,7 @@ int main()
              0,  1, 0,  0,
              0,  0,  1,  0,
              0,  0,  0,  1 };
-    
-    //mat4 xMat = (rotationx(0));
-    //mat4 yMat = (rotationy(180));
-    //cameraTransform = multiply(yMat, xMat);
+
     cameraTransform.m30 = 0;
     cameraTransform.m31 = 5;
     cameraTransform.m32 = 0;

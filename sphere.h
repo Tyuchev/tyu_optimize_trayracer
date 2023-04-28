@@ -108,10 +108,7 @@ public:
         return hit;
     }
 
-    Ray ScatterRay(Ray& ray, vec3& point, vec3& normal) const  
-    {
-        return BSDF(material, ray, point, normal);
-    }
+
 
 
 };

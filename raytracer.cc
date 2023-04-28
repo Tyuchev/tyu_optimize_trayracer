@@ -71,12 +71,13 @@ Color Raytracer::TracePath(Ray& ray, unsigned n)
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance))
     {
-        Ray scatteredRay{ hitObject->ScatterRay(ray, hitPoint, hitNormal) };
+        //BSDF overwrites ray's memory
+        BSDF(hitObject->material, ray, hitNormal);
         if (n < this->bounces)
         {
             Color colorHandle;
             hitObject->GetColor(colorHandle);
-            return colorHandle * this->TracePath(scatteredRay, n + 1);
+            return colorHandle * this->TracePath(ray, n + 1);
         }
 
         if (n == this->bounces)
