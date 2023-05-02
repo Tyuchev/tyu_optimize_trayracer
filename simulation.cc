@@ -11,6 +11,7 @@
 #include <array>
 #include <memory>
 #include <cmath>
+#include <random>
 
 #define degtorad(angle) angle * MPI / 180
 
@@ -37,6 +38,8 @@
 // Many objects created & destroyed inside raytracer class - optomize by sending in handles or passing by ref etc
 // even .Get() seems to created too many shared ptrs
 
+
+
 int main()
 {
     // Time the creation of objects
@@ -54,7 +57,6 @@ int main()
 
 #define DEBUG 1
 
-
 #ifdef DEBUG
 
     Display::Window wnd;
@@ -68,20 +70,38 @@ int main()
 #endif // DEBUG Window
 
 
-    // Simulation level Sphere holder
+    // Simulation level Sphere holder to be passed by const ref
     std::vector<Sphere> sphereHolder;
     sphereHolder.reserve(static_cast<size_t>((static_cast<int>(cmdArgs.numSpheres) * 3) + 1)); // current algorithm is num * 3 plus 1 for the floor
 
 
     std::vector<Color> framebuffer;
     // initial resolution is 200x100
-    // is this actual image resolution?
     framebuffer.resize(static_cast<size_t>(cmdArgs.imageWidth) * static_cast<size_t>(cmdArgs.imageHeight));
 
+    std::shared_ptr<std::vector<vec2>> randomHolder = std::make_shared<std::vector<vec2>>();
+    randomHolder->reserve(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
+
+    static int leet = 1337;
+    std::mt19937 generator(leet++);
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+    for (int x = 0; x < cmdArgs.imageWidth; ++x)
+    {
+        for (int y = 0; y < cmdArgs.imageHeight; ++y)
+        {
+            for (int i = 0; i < cmdArgs.raysPerPixel; ++i)
+            {
+                randomHolder->push_back( vec2{ ((float(x + dis(generator)) * (1.0f / cmdArgs.imageWidth)) * 2.0f) - 1.0f,
+                ((float(y + dis(generator)) * (1.0f / cmdArgs.imageHeight)) * 2.0f) - 1.0f });
+            }
+
+        }
+    }
 
 
     // Create Raytracer
-    Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
+    Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder, randomHolder };
 
 
     // Create some objects

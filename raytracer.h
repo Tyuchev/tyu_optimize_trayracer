@@ -8,6 +8,9 @@
 
 #include "sphere.h"
 #include <chrono>
+#include <memory>
+
+
 
 //------------------------------------------------------------------------------
 /**
@@ -15,14 +18,14 @@
 class Raytracer
 {
 public:
-    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects);
+    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects, std::shared_ptr<std::vector<vec2>> randoms);
     ~Raytracer() { }
 
     // start raytracing!
     void Raytrace();
 
     // single raycast, find object
-    bool Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject, float& distance);
+    bool Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject);
 
     // set camera matrix
     void SetViewMatrix(mat4 val);
@@ -64,6 +67,7 @@ public:
 
 private:
     std::vector<Sphere> const &worldObjects;
+    std::shared_ptr<std::vector<vec2>> randomNums;
 
 };
 

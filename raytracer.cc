@@ -2,18 +2,23 @@
 #include <random>
 
 #include <chrono>
+#include <memory>
 #include "sphere.h"
+
+
+
 
 //------------------------------------------------------------------------------
 /**
 */
-Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects) :
+Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects, std::shared_ptr<std::vector<vec2>> randoms) :
     frameBuffer(frameBuffer),
     rpp(rpp),
     bounces(bounces),
     width(w),
     height(h),
-    worldObjects(objects)
+    worldObjects(objects),
+    randomNums(randoms)
 {
     // empty
 }
@@ -24,11 +29,10 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 void
 Raytracer::Raytrace()
 {
-    // I thought leet code was banned xD
-    // Could we use a better random generator ???
-    static int leet = 1337;
-    std::mt19937 generator (leet++);
-    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    // 40 million bytes to hold my random num gen atlas
+    //static int leet = 1337;
+    //std::mt19937 generator (leet++);
+    //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
     for (int x = 0; x < this->width; ++x)
     {
@@ -37,13 +41,8 @@ Raytracer::Raytrace()
             Color color;
             for (int i = 0; i < this->rpp; ++i)
             {
-                // Maybe this distribution coud be improved??
-                float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
-                float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
+                vec3 castDirection{ randomNums->data()[(i) + (y * this->rpp) + (x * this->height)], 1.0f };
 
-                vec3 castDirection{ u, v, 1.0f };
-
-                //Not sure about get pos
                 Ray ray{ get_position(this->view), castDirection};
                 color += this->TracePath(ray, 0);
             }
@@ -67,9 +66,8 @@ Color Raytracer::TracePath(Ray& ray, unsigned n)
     vec3 hitPoint;
     vec3 hitNormal;
     const Sphere* hitObject = nullptr;
-    float distance = FLT_MAX;
 
-    if (Raycast(ray, hitPoint, hitNormal, hitObject, distance))
+    if (Raycast(ray, hitPoint, hitNormal, hitObject))
     {
         //BSDF overwrites ray's memory
         BSDF(hitObject->material, ray, hitNormal);
@@ -93,42 +91,30 @@ Color Raytracer::TracePath(Ray& ray, unsigned n)
 /**
 */
 bool
-Raytracer::Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject, float& distance)
+Raytracer::Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject)
 {
     bool isHit = false;
     HitResult closestHit;
     int numHits = 0;
-    HitResult hitResult;
+    float maxDistance = 10000;
 
-    
+    // Set max range for initial hit testing;
+    closestHit.t = maxDistance;
+
     // Only thing maybe needs doing is reducing num of spheres we check against? are some behind us maybe?
     // I think behind culling is already implemented
 
     for (auto const& object : worldObjects)
     {
         // does raycast hit an object?
-        HitResult rayTest = object.Intersect(ray, closestHit.t);
-
-        // If yes:
-        if (rayTest.sphere)
+        if (object.Intersect(closestHit, ray))
         {
-            hitResult = rayTest;
-            if (hitResult.t < closestHit.t)
-            {
-                closestHit = hitResult;
-                closestHit.sphere = &object;
-                isHit = true;
-
-                //numHits++;
-
-            }
-
+            isHit = true;
         }
 
         hitPoint = closestHit.p;
         hitNormal = closestHit.normal;
         hitObject = closestHit.sphere;
-        distance = closestHit.t;
     }
 
 

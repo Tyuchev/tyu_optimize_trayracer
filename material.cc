@@ -110,27 +110,15 @@ BSDF(Material const &material, Ray& ray, vec3& normal)
             // float F0 = powf(material.refractionIndex - 1, 2) / powf(material.refractionIndex + 1, 2);
             // As we only have one refraction index, F0 can be pre-computed
             float F0 = 0.06016f;
-
-
-            if (cosTheta > 0.35f)
+            
+            // Simplify Fresnel Schlick
+            reflect_prob = F0 + (((1.0f - material.roughness) - F0) * pow(2, ((-5.55473f * cosine - 6.98316f) * cosine)));
+            // roughness is already a random float, no need to test against another new randomFloat
+            if (reflect_prob < material.roughness)
             {
-                isReflected = true;
-            }
-            else if (material.roughness < 0.2f)
-            {
-                isReflected = true;
-            }
-            else
-            {
-                // Simplify Fresnel Schlick
-                reflect_prob = F0 + (((1.0f - material.roughness) - F0) * pow(2, ((-5.55473f * cosine - 6.98316f) * cosine)));
-                // roughness is already a random float, no need to test against another new randomFloat
-                if (reflect_prob < material.roughness)
-                {
 
-                    isReflected = false;
+                isReflected = false;
 
-                }
             }
         }
 

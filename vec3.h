@@ -2,14 +2,26 @@
 #include <cmath>
 #include <initializer_list>
 #include <assert.h>
+#include "AABB.h"
 
 #define MPI 3.14159265358979323846
+
+struct vec2
+{
+    float x, y;
+};
+
 
 class vec3
 {
 public:
     vec3()
         :x(1), y(1), z(1)
+    {
+
+    }
+
+    vec3(vec2 vec, float z) : x(vec.x), y(vec.y), z(z)
     {
 
     }

@@ -48,6 +48,7 @@ public:
         center(center),
         material(material)
     {
+
     }
 
     ~Sphere()
@@ -61,55 +62,65 @@ public:
         inputColorBuffer = material.color;
     }
 
-    HitResult Intersect(Ray ray, float maxDist) const
+    bool Intersect(HitResult& storage, Ray& ray) const
     {
-        HitResult hit;
         vec3 oc = ray.start - this->center;
-        vec3 dir = ray.rayDirection;
-        float b = oc.dot(dir); 
 
+        // Attempt to early out for spheres too far away
+        float maxDistSqr = storage.t * storage.t;
+        float ocLength = oc.x * oc.x + oc.y * oc.y + oc.z * oc.z;
+
+        // This should be adjusted by sphere radius to check for spheres which collide
+        if ((ocLength > maxDistSqr))
+        {
+            return false;
+        }
+
+        float b = oc.x * ray.rayDirection.x + oc.y * ray.rayDirection.y + oc.z * ray.rayDirection.z;
         // early out if sphere is "behind" ray
         if (b > 0)
         {
-            return hit;
+            return false;
         }
 
-        float a = dir.dot(dir);
-        float c = oc.dot(oc) - this->radius * this->radius;
-        float discriminant = b * b - a * c;
+        float a = ray.rayDirection.x * ray.rayDirection.x + 
+            ray.rayDirection.y * ray.rayDirection.y + 
+            ray.rayDirection.z * ray.rayDirection.z;
 
+        float discriminant = b * b - a * (ocLength - this->radius * this->radius);
         if (discriminant > 0)
         {
-            constexpr float minDist = 0.001f;
             float div = 1.0f / a;
+
+            // removed min distance checks
+            // constexpr float minDist = 0.001f;
+
             float sqrtDisc = sqrt(discriminant);
             float temp = (-b - sqrtDisc) * div;
-            float temp2 = (-b + sqrtDisc) * div;
 
-            if (temp < maxDist && temp > minDist)
+            if (temp < storage.t)
             {
-                vec3 p = ray.PointAt(temp);
-                hit.p = p;
-                hit.normal = (p - this->center) * (1.0f / this->radius);
-                hit.t = temp;
-                hit.sphere = this;
-                return hit;
+                //vec3 p = ray.PointAt(temp);
+                storage.p = ray.start + ray.rayDirection * temp;
+                storage.normal = (storage.p - this->center) * (1.0f / this->radius);
+                storage.t = temp;
+                storage.sphere = this;
+                return true;
             }
-            if (temp2 < maxDist && temp2 > minDist)
+
+            float temp2 = (-b + sqrtDisc) * div;
+            if (temp2 < storage.t)
             {
-                vec3 p = ray.PointAt(temp2);
-                hit.p = p;
-                hit.normal = (p - this->center) * (1.0f / this->radius);
-                hit.t = temp2;
-                hit.sphere = this;
-                return hit;
+                //vec3 p = ray.PointAt(temp2);
+                storage.p = ray.start + ray.rayDirection * temp2;
+                storage.normal = (storage.p - this->center) * (1.0f / this->radius);
+                storage.t = temp2;
+                storage.sphere = this;
+                return true;
             }
         }
-        return hit;
+        return false;
     }
-
-
-
 
 };
 
