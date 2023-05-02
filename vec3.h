@@ -2,7 +2,6 @@
 #include <cmath>
 #include <initializer_list>
 #include <assert.h>
-#include "AABB.h"
 
 #define MPI 3.14159265358979323846
 
