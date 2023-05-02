@@ -4,6 +4,7 @@
 #include "raytracer.h"
 #include "sphere.h"
 #include "cmdArgs.h"
+#include "random.h"
 
 #include <iostream>
 #include <chrono>
@@ -109,6 +110,7 @@ int main()
 
     // Create Raytracer
     Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
+    RandomGen randomGen;
 
 
     // Create some objects
@@ -127,29 +129,29 @@ int main()
         {
             Material mat{};
                 mat.type = "Lambertian";
-                float r = RandomFloat();
-                float g = RandomFloat();
-                float b = RandomFloat();
+                float r = randomGen.RandomFloat();
+                float g = randomGen.RandomFloat();
+                float b = randomGen.RandomFloat();
                 mat.color = { r,g,b };
-                mat.roughness = RandomFloat();
+                mat.roughness = randomGen.RandomFloat();
                 const double span = 10.0f;
-                Sphere sphere{ RandomFloat() * 1.5f + 0.5f, vec3{RandomFloatNTP() * span, RandomFloat() * span + 0.2f, RandomFloatNTP() * span}, mat };
+                Sphere sphere{ randomGen.RandomFloat() * 1.5f + 0.5f, vec3{randomGen.RandomFloatNTP() * span, randomGen.RandomFloat() * span + 0.2f, randomGen.RandomFloatNTP() * span}, mat };
             sphereHolder.push_back(sphere);
         }
         {
             Material mat{};
             mat.type = "Conductor";
-            float r = RandomFloat();
-            float g = RandomFloat();
-            float b = RandomFloat();
+            float r = randomGen.RandomFloat();
+            float g = randomGen.RandomFloat();
+            float b = randomGen.RandomFloat();
             mat.color = { r,g,b };
-            mat.roughness = RandomFloat();
+            mat.roughness = randomGen.RandomFloat();
             const double span = 30.0f;
-            Sphere sphere{ RandomFloat() * 1.5f + 0.5f,
+            Sphere sphere{ randomGen.RandomFloat() * 1.5f + 0.5f,
                 vec3{
-                    RandomFloatNTP() * span,
-                    RandomFloat() * span + 0.2f,
-                    RandomFloatNTP() * span
+                    randomGen.RandomFloatNTP() * span,
+                    randomGen.RandomFloat() * span + 0.2f,
+                    randomGen.RandomFloatNTP() * span
                 },
                 mat };
             sphereHolder.push_back(sphere);
@@ -157,18 +159,18 @@ int main()
         {
             Material mat{};
             mat.type = "Dielectric";
-            float r = RandomFloat();
-            float g = RandomFloat();
-            float b = RandomFloat();
+            float r = randomGen.RandomFloat();
+            float g = randomGen.RandomFloat();
+            float b = randomGen.RandomFloat();
             mat.color = { r,g,b };
-            mat.roughness = RandomFloat();
+            mat.roughness = randomGen.RandomFloat();
             const double span = 25.0f;
             Sphere sphere{
-                RandomFloat() * 1.5f + 0.5f,
+                randomGen.RandomFloat() * 1.5f + 0.5f,
                 vec3{
-                    RandomFloatNTP() * span,
-                    RandomFloat() * span + 0.2f,
-                    RandomFloatNTP() * span
+                    randomGen.RandomFloatNTP() * span,
+                    randomGen.RandomFloat() * span + 0.2f,
+                    randomGen.RandomFloatNTP() * span
                 },
                 mat};
             sphereHolder.push_back(sphere);
@@ -211,7 +213,7 @@ int main()
 
 
         // main raytracing starts here 
-        rt.Raytrace();
+        rt.Raytrace(randomGen);
         frameIndex++;
 
         // Get the average distribution of all samples

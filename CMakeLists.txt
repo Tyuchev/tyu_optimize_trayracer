@@ -39,7 +39,6 @@ SET(files
 		vec3.h
 		color.h
 		mat4.h
-		pbr.h
 		ray.h
 		raytracer.h
 		raytracer.cc

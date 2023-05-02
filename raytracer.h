@@ -7,6 +7,7 @@
 #include <float.h>
 
 #include "sphere.h"
+#include "random.h"
 #include <chrono>
 #include <memory>
 
@@ -22,7 +23,7 @@ public:
     ~Raytracer() { }
 
     // start raytracing!
-    void Raytrace();
+    void Raytrace(RandomGen& generator);
 
     // single raycast, find object
     bool Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject);
@@ -32,7 +33,7 @@ public:
 
     // trace a path and return intersection color
     // n is bounce depth
-    Color TracePath(Ray& ray, unsigned n);
+    Color TracePath(Ray& ray, unsigned n, RandomGen& generator);
 
     // get the color of the skybox in a direction
     Color Skybox(vec3& direction) const;
@@ -51,8 +52,15 @@ public:
     
 
 
+
 private:
     std::vector<Sphere> const &worldObjects;
+
+    // Scatter ray against material
+    bool BSDF(Material const& material, Ray& ray, vec3& normal, RandomGen& generator);
+
+    // returns a random point on the surface of a unit sphere
+    vec3 random_point_on_unit_sphere(RandomGen& generator);
     
     // To refer to precalculated random values - deprecated
     // std::shared_ptr<std::vector<vec2>> randomNums;

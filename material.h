@@ -26,15 +26,6 @@ struct Material
 
 //------------------------------------------------------------------------------
 /**
-    Scatter ray against material
-*/
-bool BSDF(Material const &material, Ray& ray, vec3& normal);
-
-// returns a random point on the surface of a unit sphere
-vec3 random_point_on_unit_sphere();
-
-//------------------------------------------------------------------------------
-/**
 */
 
 //Simplified and used elswhere

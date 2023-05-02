@@ -5,15 +5,11 @@
 	XorShift128 implementation.
 */
 unsigned
-FastRandom()
+RandomGen::FastRandom()
 {
 	// These are predefined to give us the largest
 	// possible sequence of random numbers
-    static unsigned x = 123456789;
-    static unsigned y = 362436069;
-    static unsigned z = 521288629;
-    static unsigned w = 88675123;
-    unsigned t;
+
     t = x ^ (x << 11);
     x = y;
 	y = z;
@@ -26,7 +22,7 @@ FastRandom()
     Thanks to Nic Werneck (https://xor0110.wordpress.com/2010/09/24/how-to-generate-floating-point-random-numbers-efficiently/)
 */
 float
-RandomFloat()
+RandomGen::RandomFloat()
 {
     union
     {
@@ -41,7 +37,7 @@ RandomFloat()
 /**
 */
 float
-RandomFloatNTP()
+RandomGen::RandomFloatNTP()
 {
     union
     {
