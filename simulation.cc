@@ -12,6 +12,7 @@
 #include <memory>
 #include <cmath>
 #include <random>
+#include <algorithm>
 
 #define degtorad(angle) angle * MPI / 180
 
@@ -79,29 +80,35 @@ int main()
     // initial resolution is 200x100
     framebuffer.resize(static_cast<size_t>(cmdArgs.imageWidth) * static_cast<size_t>(cmdArgs.imageHeight));
 
-    std::shared_ptr<std::vector<vec2>> randomHolder = std::make_shared<std::vector<vec2>>();
-    randomHolder->reserve(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
 
-    static int leet = 1337;
-    std::mt19937 generator(leet++);
-    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
-    for (int x = 0; x < cmdArgs.imageWidth; ++x)
-    {
-        for (int y = 0; y < cmdArgs.imageHeight; ++y)
-        {
-            for (int i = 0; i < cmdArgs.raysPerPixel; ++i)
-            {
-                randomHolder->push_back( vec2{ ((float(x + dis(generator)) * (1.0f / cmdArgs.imageWidth)) * 2.0f) - 1.0f,
-                ((float(y + dis(generator)) * (1.0f / cmdArgs.imageHeight)) * 2.0f) - 1.0f });
-            }
 
-        }
-    }
+    // Attempt at pre calculating random values - My testing shows that they need to change each frame & so this isnt a valuable exercise
+    // 
+    // std::shared_ptr<std::vector<vec2>> randomHolder = std::make_shared<std::vector<vec2>>();
+    // randomHolder->reserve(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
+    // 
+    //static int leet = 1337;
+    //std::mt19937 generator(leet++);
+    //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+    //for (int x = 0; x < cmdArgs.imageWidth; ++x)
+    //{
+    //    for (int y = 0; y < cmdArgs.imageHeight; ++y)
+    //    {
+    //        for (int i = 0; i < cmdArgs.raysPerPixel; ++i)
+    //        {
+    //            randomHolder->push_back( vec2{ ((float(x + dis(generator)) * (1.0f / cmdArgs.imageWidth)) * 2.0f) - 1.0f,
+    //            ((float(y + dis(generator)) * (1.0f / cmdArgs.imageHeight)) * 2.0f) - 1.0f });
+    //        }
+
+    //    }
+    //}
+
 
 
     // Create Raytracer
-    Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder, randomHolder };
+    Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
 
 
     // Create some objects
@@ -167,32 +174,6 @@ int main()
             sphereHolder.push_back(sphere);
         }
     }
-    
-    // camera
-    mat4 cameraTransform
-            {1,  0,  0,  0,
-             0,  1, 0,  0,
-             0,  0,  1,  0,
-             0,  0,  0,  1 };
-
-    cameraTransform.m30 = 0;
-    cameraTransform.m31 = 10;
-    cameraTransform.m32 = 0;
-
-    // Camera operations dont seem to work properly
-    // Work is on hold as Ive wasted too much time on this
-    // 
-    //float rotx = 0.0f;
-    //float roty = 100.0f;
-    //mat4 xMat{ (rotationx(rotx)) };
-    //mat4 yMat{ (rotationy(roty)) };
-    //mat4 cameraTransform{ multiply(yMat, xMat) };
-    //cameraTransform.m30 = 0;
-    //cameraTransform.m31 = 10;
-    //cameraTransform.m32 = 0;
-
-
-    bool resetFramebuffer = false;
 
     // number of accumulated frames
     int frameIndex = 0;
@@ -217,22 +198,16 @@ int main()
     std::chrono::high_resolution_clock::time_point renderEnd;
     double renderTimer{ 0.0 };
 
+
     // rendering loop
     while (true)
     {
         renderBegin = wallClock.now();
-        resetFramebuffer = false;
         
 
 #ifdef DEBUG
         wnd.Update();
 #endif
-
-
-        // Likely not required - was trying to get the camera to work...
-        rt.SetViewMatrix(cameraTransform);
-        //resetFramebuffer |= true;
-
 
 
         // main raytracing starts here 

@@ -2,6 +2,7 @@
 #include <random>
 
 #include <chrono>
+#include <iostream>
 #include <memory>
 #include "sphere.h"
 
@@ -11,14 +12,14 @@
 //------------------------------------------------------------------------------
 /**
 */
-Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects, std::shared_ptr<std::vector<vec2>> randoms) :
+Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects) :
     frameBuffer(frameBuffer),
     rpp(rpp),
     bounces(bounces),
     width(w),
     height(h),
-    worldObjects(objects),
-    randomNums(randoms)
+    worldObjects(objects)
+
 {
     // empty
 }
@@ -29,10 +30,13 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 void
 Raytracer::Raytrace()
 {
-    // 40 million bytes to hold my random num gen atlas
-    //static int leet = 1337;
-    //std::mt19937 generator (leet++);
-    //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+     //40 million bytes to hold my random num gen atlas
+     static int leet = 1337;
+     std::mt19937 generator (leet++);
+     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+     float widthInv = 1.0f / this->width;
+     float heightInv = 1.0f / this->height;
 
     for (int x = 0; x < this->width; ++x)
     {
@@ -41,9 +45,10 @@ Raytracer::Raytrace()
             Color color;
             for (int i = 0; i < this->rpp; ++i)
             {
-                vec3 castDirection{ randomNums->data()[(i) + (y * this->rpp) + (x * this->height)], 1.0f };
+                float u = ((float(x + dis(generator)) * widthInv) * 2.0f) - 1.0f;
+                float v = ((float(y + dis(generator)) * heightInv) * 2.0f) - 1.0f;
 
-                Ray ray{ get_position(this->view), castDirection};
+                Ray ray{ vec3{0, 10, 0}, vec3(u, v, 1.0f) };
                 color += this->TracePath(ray, 0);
             }
 
@@ -55,6 +60,7 @@ Raytracer::Raytrace()
             this->frameBuffer[y * this->width + x] += color;
         }
     }
+
 }
 
 //------------------------------------------------------------------------------
@@ -137,16 +143,6 @@ Raytracer::Clear()
     }
 }
 
-//------------------------------------------------------------------------------
-/**
-*/
-void
-Raytracer::UpdateMatrices()
-{
-    mat4 inverseView = inverse(this->view); 
-    mat4 basis = transpose(inverseView);
-    this->frustum = basis;
-}
 
 //------------------------------------------------------------------------------
 /**

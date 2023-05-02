@@ -18,7 +18,7 @@
 class Raytracer
 {
 public:
-    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects, std::shared_ptr<std::vector<vec2>> randoms);
+    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects);
     ~Raytracer() { }
 
     // start raytracing!
@@ -27,14 +27,8 @@ public:
     // single raycast, find object
     bool Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject);
 
-    // set camera matrix
-    void SetViewMatrix(mat4 val);
-
     // clear screen
     void Clear();
-
-    // update matrices. Called automatically after setting view matrix
-    void UpdateMatrices();
 
     // trace a path and return intersection color
     // n is bounce depth
@@ -55,25 +49,14 @@ public:
     // height of framebuffer
     const unsigned height;
     
-    const vec3 lowerLeftCorner = { -2.0, -1.0, -1.0 };
-    const vec3 horizontal = { 4.0, 0.0, 0.0 };
-    const vec3 vertical = { 0.0, 2.0, 0.0 };
-    const vec3 origin = { 0.0, 2.0, 10.0f };
 
-    // view matrix
-    mat4 view;
-    // Go from canonical to view frustum
-    mat4 frustum;
 
 private:
     std::vector<Sphere> const &worldObjects;
-    std::shared_ptr<std::vector<vec2>> randomNums;
+    
+    // To refer to precalculated random values - deprecated
+    // std::shared_ptr<std::vector<vec2>> randomNums;
 
 };
 
 
-inline void Raytracer::SetViewMatrix(mat4 val)
-{
-    this->view = val;
-    this->UpdateMatrices();
-}

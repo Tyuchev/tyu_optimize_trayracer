@@ -28,7 +28,7 @@ FastRandom()
 float
 RandomFloat()
 {
-    static union
+    union
     {
         unsigned int i;
         float f;
@@ -43,7 +43,7 @@ RandomFloat()
 float
 RandomFloatNTP()
 {
-    static union
+    union
     {
         unsigned int i;
         float f;
