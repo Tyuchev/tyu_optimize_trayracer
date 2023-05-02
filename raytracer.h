@@ -35,7 +35,7 @@ public:
     Color TracePath(Ray& ray, unsigned n);
 
     // get the color of the skybox in a direction
-    Color Skybox(vec3 direction);
+    Color Skybox(vec3& direction) const;
 
     std::vector<Color>& frameBuffer;
     

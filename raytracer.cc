@@ -116,15 +116,13 @@ Raytracer::Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hit
         if (object.Intersect(closestHit, ray))
         {
             isHit = true;
-        }
 
-        hitPoint = closestHit.p;
-        hitNormal = closestHit.normal;
-        hitObject = closestHit.sphere;
+            hitPoint = closestHit.p;
+            hitNormal = closestHit.normal;
+            hitObject = closestHit.sphere;
+        }
     }
 
-
-    
     return isHit;
 }
 
@@ -148,7 +146,7 @@ Raytracer::Clear()
 /**
 */
 Color
-Raytracer::Skybox(vec3 direction)
+Raytracer::Skybox(vec3& direction) const
 {
     float t = 0.5*(direction.y + 1.0);
     vec3 vec = vec3(1.0 - t, 1.0 - t, 1.0 - t) + vec3(0.5 * t, 0.7 * t, t);

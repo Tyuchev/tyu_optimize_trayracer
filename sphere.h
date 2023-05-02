@@ -23,17 +23,6 @@ struct HitResult
 };
 
 
-// returns a random point on the surface of a unit sphere
-inline vec3 random_point_on_unit_sphere()
-{
-    float x = RandomFloatNTP();
-    float y = RandomFloatNTP();
-    float z = RandomFloatNTP();
-    vec3 v(x, y, z);
-    return v ;
-};
-
-
 // a spherical object
 class Sphere
 {
@@ -65,60 +54,59 @@ public:
     bool Intersect(HitResult& storage, Ray& ray) const
     {
         vec3 oc = ray.start - this->center;
-
-        // Attempt to early out for spheres too far away
-        float maxDistSqr = storage.t * storage.t;
-        float ocLength = oc.x * oc.x + oc.y * oc.y + oc.z * oc.z;
-
-        // This should be adjusted by sphere radius to check for spheres which collide
-        if ((ocLength > maxDistSqr))
-        {
-            return false;
-        }
-
         float b = oc.x * ray.rayDirection.x + oc.y * ray.rayDirection.y + oc.z * ray.rayDirection.z;
         // early out if sphere is "behind" ray
         if (b > 0)
         {
             return false;
         }
-
-        float a = ray.rayDirection.x * ray.rayDirection.x + 
-            ray.rayDirection.y * ray.rayDirection.y + 
-            ray.rayDirection.z * ray.rayDirection.z;
-
-        float discriminant = b * b - a * (ocLength - this->radius * this->radius);
-        if (discriminant > 0)
+        // Attempt to early out for spheres too far away
+        float maxDistSqr = storage.t * storage.t;
+        float ocLength = oc.x * oc.x + oc.y * oc.y + oc.z * oc.z;
+        // This should be adjusted by sphere radius to check for spheres which collide
+        if ((ocLength < maxDistSqr))
         {
-            float div = 1.0f / a;
+            float a = ray.rayDirection.x * ray.rayDirection.x +
+                ray.rayDirection.y * ray.rayDirection.y +
+                ray.rayDirection.z * ray.rayDirection.z;
 
-            // removed min distance checks
-            // constexpr float minDist = 0.001f;
-
-            float sqrtDisc = sqrt(discriminant);
-            float temp = (-b - sqrtDisc) * div;
-
-            if (temp < storage.t)
+            float discriminant = b * b - a * (ocLength - this->radius * this->radius);
+            if (discriminant <= 0)
             {
-                //vec3 p = ray.PointAt(temp);
-                storage.p = ray.start + ray.rayDirection * temp;
-                storage.normal = (storage.p - this->center) * (1.0f / this->radius);
-                storage.t = temp;
-                storage.sphere = this;
-                return true;
+                return false;
             }
-
-            float temp2 = (-b + sqrtDisc) * div;
-            if (temp2 < storage.t)
+            else
             {
-                //vec3 p = ray.PointAt(temp2);
-                storage.p = ray.start + ray.rayDirection * temp2;
-                storage.normal = (storage.p - this->center) * (1.0f / this->radius);
-                storage.t = temp2;
-                storage.sphere = this;
-                return true;
+                float div = 1.0f / a;
+                // removed min distance checks
+                // constexpr float minDist = 0.001f;
+                float sqrtDisc = sqrt(discriminant);
+                float temp = (-b - sqrtDisc) * div;
+                if (temp < storage.t)
+                {
+                    //vec3 p = ray.PointAt(temp);
+                    storage.p = ray.start + ray.rayDirection * temp;
+                    storage.normal = (storage.p - this->center) * (1.0f / this->radius);
+                    storage.t = temp;
+                    storage.sphere = this;
+                    return true;
+                }
+
+
+                //// i think this checks if we are inside a sphere - not needed at small numbers
+                //float temp2 = (-b + sqrtDisc) * div;
+                //if (temp2 < storage.t)
+                //{
+                //    //vec3 p = ray.PointAt(temp2);
+                //    storage.p = ray.start + ray.rayDirection * temp2;
+                //    storage.normal = (storage.p - this->center) * (1.0f / this->radius);
+                //    storage.t = temp2;
+                //    storage.sphere = this;
+                //    return true;
+                //}
             }
         }
+
         return false;
     }
 
