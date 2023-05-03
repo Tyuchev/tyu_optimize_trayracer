@@ -31,12 +31,6 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 void
 Raytracer::Raytrace(RandomGen& generator)
 {
-     //40 million bytes to hold my random num gen atlas
-     static int leet = 1337;
-     std::mt19937 merseneGenerator (leet++);
-     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-
-
      float widthInv = 1.0f / this->width;
      float heightInv = 1.0f / this->height;
 
@@ -47,8 +41,9 @@ Raytracer::Raytrace(RandomGen& generator)
             Color color;
             for (int i = 0; i < this->rpp; ++i)
             {
-                float u = ((float(x + dis(merseneGenerator)) * widthInv) * 2.0f) - 1.0f;
-                float v = ((float(y + dis(merseneGenerator)) * heightInv) * 2.0f) - 1.0f;
+                float a = generator.RandomFloat();
+                float u = ((float(x + a) * widthInv) * 2.0f) - 1.0f;
+                float v = ((float(y + a) * heightInv) * 2.0f) - 1.0f;
 
                 // this is where i set camera position and direction
                 Ray ray{ vec3{0, 10, 0}, vec3(u, v, 1.0f) };
@@ -92,8 +87,11 @@ Color Raytracer::TracePath(Ray& ray, unsigned n, RandomGen& gen)
             return {0,0,0};
         }
     }
-
-    return this->Skybox(ray.rayDirection * ray.magnitude);
+    else // misses
+    {
+        float missRay = ray.rayDirection.y * ray.magnitude;
+        return this->Skybox(missRay);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -149,11 +147,14 @@ Raytracer::Clear()
 /**
 */
 Color
-Raytracer::Skybox(vec3& direction) const
+Raytracer::Skybox(float rayY) const
 {
-    float t = 0.5*(direction.y + 1.0);
-    vec3 vec = vec3(1.0 - t, 1.0 - t, 1.0 - t) + vec3(0.5 * t, 0.7 * t, t);
-    return {(float)vec.x, (float)vec.y, (float)vec.z};
+    float t = 0.5*(rayY + 1.0);
+
+    float xColor = 1 - (0.5 * t);
+    float yColor = 1 - (0.3 * t);
+
+    return {xColor, yColor, 1.0f};
 }
 
 

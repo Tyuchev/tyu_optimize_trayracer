@@ -18,15 +18,21 @@ public:
 	/// Note that this is not a truly random random number generator
 	float RandomFloatNTP();
 
+
+	RandomGen()
+		:x(123456789), y(362436069), z(521288629), w(88675123), t(1)
+	{
+		// empty
+	}
+
 private:
 
-	unsigned x = 123456789;
-	unsigned y = 362436069;
-	unsigned z = 521288629;
-	unsigned w = 88675123;
-	unsigned t = 1;
 
-
+	unsigned x;
+	unsigned y;
+	unsigned z;
+	unsigned w;
+	unsigned t;
 };
 
 

@@ -88,7 +88,7 @@ public:
         return { this->x + rhs.x, this->y + rhs.y, this->z + rhs.z };
     }
 
-    float dot(vec3& rhs) const
+    float dot(const vec3& rhs) const
     {
         return this->x * rhs.x + this->y * rhs.y + this->z * rhs.z;
     }
