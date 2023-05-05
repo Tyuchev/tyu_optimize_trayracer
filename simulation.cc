@@ -14,6 +14,8 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+#include <thread>
+#include <atomic>
 
 #define degtorad(angle) angle * MPI / 180
 
@@ -49,7 +51,7 @@ int main()
     auto setupBegin = wallClock.now();
 
     // Store cmdArgs in class (has default values if not provided with args)
-    CmdArgs cmdArgs{};
+    CmdArgs cmdArgs{1};
 
     // Check if DEBUG MODE, --debug was set
     // Not sure how to properly have multiple modes
@@ -57,7 +59,7 @@ int main()
     //const bool cmdArgsDEBUG{1};
     //constexpr bool DEBUG_MODE = cmdArgsDEBUG;
 
-#define DEBUG 1
+//#define DEBUG 1
 
 #ifdef DEBUG
 
@@ -82,35 +84,9 @@ int main()
     framebuffer.resize(static_cast<size_t>(cmdArgs.imageWidth) * static_cast<size_t>(cmdArgs.imageHeight));
 
 
-
-
-    // Attempt at pre calculating random values - My testing shows that they need to change each frame & so this isnt a valuable exercise
-    // 
-    // std::shared_ptr<std::vector<vec2>> randomHolder = std::make_shared<std::vector<vec2>>();
-    // randomHolder->reserve(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
-    // 
-    //static int leet = 1337;
-    //std::mt19937 generator(leet++);
-    //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-
-    //for (int x = 0; x < cmdArgs.imageWidth; ++x)
-    //{
-    //    for (int y = 0; y < cmdArgs.imageHeight; ++y)
-    //    {
-    //        for (int i = 0; i < cmdArgs.raysPerPixel; ++i)
-    //        {
-    //            randomHolder->push_back( vec2{ ((float(x + dis(generator)) * (1.0f / cmdArgs.imageWidth)) * 2.0f) - 1.0f,
-    //            ((float(y + dis(generator)) * (1.0f / cmdArgs.imageHeight)) * 2.0f) - 1.0f });
-    //        }
-
-    //    }
-    //}
-
-
-
     // Create Raytracer
     Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
-    RandomGen randomGen;
+    thread_local RandomGen randomGen;
 
 
     // Create some objects
@@ -190,7 +166,7 @@ int main()
 
 
     // End of setup timer
-    float setupTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(wallClock.now() - setupBegin)).count() * 0.001;
+    float setupTimer = (std::chrono::duration_cast<std::chrono::microseconds>(wallClock.now() - setupBegin)).count() * 0.000001;
     // Output setup time of objects
     std::cout << "Setup Time: " << setupTimer << " seconds" << std::endl;
 
@@ -201,22 +177,45 @@ int main()
     double renderTimer{ 0.0 };
 
 
+    // Setup Random valuer atlas
+    std::vector<float> randomIt;
+    randomIt.resize(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
+    for (int i = 0; i < cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel; i++)
+    {
+        randomIt.push_back(i);
+    }
+
+    std::vector<float> randomHolder;
+    randomHolder.resize(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
+
+
     // rendering loop
     while (true)
     {
-        renderBegin = wallClock.now();
-        
+        renderBegin = wallClock.now();        
 
 #ifdef DEBUG
         wnd.Update();
 #endif
 
 
-        // main raytracing starts here 
-        rt.Raytrace(randomGen);
+         //Calculate all random values
+         //Maybe there is a way to alter the values each frame a bit, instead of regenerating new random values
+         //If it was the same operation it could be SIMD'd
+        std::for_each(std::execution::par, randomIt.begin(), randomIt.end(),
+            [&randomHolder](int i)
+            {
+                randomHolder[i] = randomGen.RandomFloat();
+            });
+
+
+
+        // Raytracing starts here 
+        rt.Raytrace(randomHolder);
         frameIndex++;
 
         // Get the average distribution of all samples
+        // SIMD required
         {
             size_t p = 0;
             for (Color const& pixel : framebuffer)
@@ -231,9 +230,9 @@ int main()
         // End of raytracing
 
 
+
         glClearColor(0, 0, 0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
-
 
 #ifdef DEBUG
         wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
@@ -243,10 +242,10 @@ int main()
 
         // Timers & Debug info
         renderEnd = wallClock.now();
-        renderTimer = (std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - renderBegin)).count() * 0.001;
+        renderTimer = (std::chrono::duration_cast<std::chrono::microseconds>(renderEnd - renderBegin)).count() * 0.000001;
 
         // MraysPerSec
-        megaRaysPerSec = numberMegaRays *  (1 / renderTimer);
+        megaRaysPerSec = numberMegaRays *  (1.0f / renderTimer);
 
         std::cout << "Render Time: " << renderTimer << " seconds" << std::endl;
         std::cout << "Mrays/sec: " << megaRaysPerSec << "\n" << std::endl;
@@ -266,4 +265,5 @@ int main()
 
 
     return 0;
-} 
+}
+
