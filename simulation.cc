@@ -59,7 +59,7 @@ int main()
     //const bool cmdArgsDEBUG{1};
     //constexpr bool DEBUG_MODE = cmdArgsDEBUG;
 
-//#define DEBUG 1
+#define DEBUG 1
 
 #ifdef DEBUG
 
@@ -86,7 +86,7 @@ int main()
 
     // Create Raytracer
     Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
-    thread_local RandomGen randomGen;
+    RandomGen randomGen;
 
 
     // Create some objects
@@ -177,18 +177,6 @@ int main()
     double renderTimer{ 0.0 };
 
 
-    // Setup Random valuer atlas
-    std::vector<float> randomIt;
-    randomIt.resize(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
-    for (int i = 0; i < cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel; i++)
-    {
-        randomIt.push_back(i);
-    }
-
-    std::vector<float> randomHolder;
-    randomHolder.resize(cmdArgs.imageWidth * cmdArgs.imageHeight * cmdArgs.raysPerPixel);
-
-
     // rendering loop
     while (true)
     {
@@ -197,21 +185,8 @@ int main()
 #ifdef DEBUG
         wnd.Update();
 #endif
-
-
-         //Calculate all random values
-         //Maybe there is a way to alter the values each frame a bit, instead of regenerating new random values
-         //If it was the same operation it could be SIMD'd
-        std::for_each(std::execution::par, randomIt.begin(), randomIt.end(),
-            [&randomHolder](int i)
-            {
-                randomHolder[i] = randomGen.RandomFloat();
-            });
-
-
-
         // Raytracing starts here 
-        rt.Raytrace(randomHolder);
+        rt.Raytrace();
         frameIndex++;
 
         // Get the average distribution of all samples
@@ -227,14 +202,11 @@ int main()
                 p++;
             }
         }
-        // End of raytracing
 
-
-
-        glClearColor(0, 0, 0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
 
 #ifdef DEBUG
+        glClearColor(0, 0, 0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
         wnd.Blit((float*)&framebufferCopy[0], cmdArgs.imageWidth, cmdArgs.imageHeight);
         wnd.SwapBuffers();
 #endif // DEBUG
@@ -249,19 +221,13 @@ int main()
 
         std::cout << "Render Time: " << renderTimer << " seconds" << std::endl;
         std::cout << "Mrays/sec: " << megaRaysPerSec << "\n" << std::endl;
-
     }
 
 
-
     // Cleanup
-
 #ifdef DEBUG
     wnd.Close();
 #endif // DEBUG
-
-
-
 
 
     return 0;

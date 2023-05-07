@@ -11,6 +11,7 @@
 
 #include "sphere.h"
 #include "random.h"
+#include "mat4.h"
 
 
 
@@ -18,18 +19,22 @@
 //------------------------------------------------------------------------------
 /**
 */
-Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const& objects) :
+Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces,
+	std::vector<Sphere> const& objects) :
 	frameBuffer(frameBuffer),
 	rpp(rpp),
 	bounces(bounces),
 	width(w),
 	height(h),
 	worldObjects(objects)
-
 {
 	frameBufferWidthIt.resize(w);
 	frameBufferHeightIt.resize(h);
 	frameBufferRppIt.resize(rpp);
+
+	randomVec.resize(w * h * rpp);
+	randomVecIt.resize(w * h * rpp);
+
 	for (int x = 0; x < w; x++)
 	{
 		frameBufferWidthIt[x] = x;
@@ -42,6 +47,11 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 	{
 		frameBufferRppIt[r] = r;
 	}
+
+	for (int rit = 0; rit < w * h * rpp; rit++)
+	{
+		randomVecIt[rit] = rit;
+	}
 }
 
 
@@ -49,34 +59,43 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 /**
 */
 void
-Raytracer::Raytrace(std::vector<float>& randoms)
+Raytracer::Raytrace()
 {
+	//std::thread::hardware_concurrency();
+
+	//Calculate all random values
+	//Maybe there is a way to alter the values each frame a bit, instead of regenerating new random values
+	//If it was the same operation it could be SIMD'd
+
+
+	std::for_each(std::execution::par, randomVecIt.begin(), randomVecIt.end(),
+		[this](int i)
+		{
+			randomVec[i] = randomGen.RandomFloat();
+		});
+
 	float widthInv = 1.0f / this->width;
 	float heightInv = 1.0f / this->height;
 
-
-	//std::thread::hardware_concurrency();
-
 	std::for_each(std::execution::par, frameBufferWidthIt.begin(), frameBufferWidthIt.end(),
-		[this, &randoms, widthInv, heightInv](int xarray)
+		[this, widthInv, heightInv](int xarray)
 		{
 			//float pixelRandom = randoms[xarray];
 			std::for_each(frameBufferHeightIt.begin(), frameBufferHeightIt.end(),
-			[this, &randoms, xarray, widthInv, heightInv](int yarray)
+			[this, xarray, widthInv, heightInv](int yarray)
 				{
 
 					Color color;
 					std::for_each(frameBufferRppIt.begin(), frameBufferRppIt.end(),
-						[this, &randoms, xarray, yarray, widthInv, heightInv, &color](int i)
+						[this, xarray, yarray, widthInv, heightInv, &color](int i)
 						{
 
-							float u = ((float(xarray + randoms[xarray + i]) * widthInv) * 2.0f) - 1.0f;
-							float v = ((float(yarray + randoms[yarray * this->width + xarray + i]) * heightInv) * 2.0f) - 1.0f;
-							
+							float u = ((float(xarray + randomVec[xarray + i]) * widthInv) * 2.0f) - 1.0f;
+							float v = ((float(yarray + randomVec[yarray * this->width + xarray + i]) * heightInv) * 2.0f) - 1.0f;
 
 							// this is where i set camera position and direction
 							Ray ray{ vec3{0, 10, 0}, vec3(u, v, 1.0f) };
-							color += this->TracePath(ray, 0, randoms[xarray]);
+							color += this->TracePath(ray, 0, randomVec[xarray]);
 
 						});
 
@@ -89,11 +108,7 @@ Raytracer::Raytrace(std::vector<float>& randoms)
 					this->frameBuffer[yarray * this->width + xarray] += color;
 				});
 
-		});
-
-	// std::move
-	
- 
+		}); 
 }
 
 //------------------------------------------------------------------------------
@@ -159,6 +174,10 @@ Raytracer::Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hit
 		}
 	}
 
+	//std::for_each(std::execution::par, frameBufferWidthIt.begin(), frameBufferWidthIt.end(),
+	//	[this, widthInv, heightInv](int xarray)
+	//	{
+
 	return isHit;
 }
 
@@ -219,7 +238,8 @@ bool Raytracer::BSDF(Material const& material, Ray& ray, vec3& normal, float ran
 	// 
 	// IF RAY & NORMAL go in SAME direction, THETA will be NEGATIVE
 
-	assert(material.type && "Sphere material MUST always be set!!!!");
+	// Never seems to be hit, but recurring issue with material type comparison
+	//assert(material.type != nullptr && "Sphere material MUST always be set!!!!");
 
 
 	if (material.type != "Dielectric")

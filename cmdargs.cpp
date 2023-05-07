@@ -11,13 +11,20 @@ CmdArgs::CmdArgs()
 {
 	// blank
 	// Number of spheres is actually multiplied by 3 - therefore initial test has 12 * 3 = 36 spheres
+	// 720,000 approx intersection checks
+	// Render time 0.00055
+	// tests per second = 720,000 / rendertime = 1,309,090,909
 }
 
 CmdArgs::CmdArgs(int a) // a is discarded
-	: windowWidth(1000), windowHeight(500), imageWidth(1000), imageHeight(500), raysPerPixel(1), maxBounces(5), numSpheres(3334)
+	: windowWidth(1000), windowHeight(500), imageWidth(1000), imageHeight(500), raysPerPixel(20), maxBounces(5), numSpheres(3334)
 {
-	// Number of spheres is actually multiplied by 3 - therefore initial test has 3334 * 3 = 10002 spheres
 	// blank
+	// Number of spheres is actually multiplied by 3 - therefore initial test has 3334 * 3 = 10002 spheres
+
+	// 100,000,000,000 (100 billion)
+	// Render time 296
+	// tests per second = 100 billion / rendertime = 333,333,333
 }
 
 

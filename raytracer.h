@@ -15,6 +15,7 @@
 
 #include "sphere.h"
 #include "random.h"
+#include "mat4.h"
 
 
 
@@ -24,11 +25,12 @@
 class Raytracer
 {
 public:
-    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, std::vector<Sphere> const &objects);
+    Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces, 
+        std::vector<Sphere> const &objects);
     ~Raytracer() { }
 
     // start raytracing!
-    void Raytrace(std::vector<float>& randoms);
+    void Raytrace();
 
     // single raycast, find object
     bool Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hitObject);
@@ -55,7 +57,8 @@ public:
     // height of framebuffer
     const unsigned height;
     
-
+    std::vector<float> randomVec;
+    std::vector<float> randomVecIt;
 
 
 private:
@@ -64,14 +67,15 @@ private:
     std::vector<int> frameBufferHeightIt;
     std::vector<int> frameBufferRppIt;
 
+
+    RandomGen randomGen;
+
     // Scatter ray against material
     bool BSDF(Material const& material, Ray& ray, vec3& normal, float random);
 
     // returns a random point on the surface of a unit sphere
     vec3 random_point_on_unit_sphere(float random);
     
-    // To refer to precalculated random values - deprecated
-    // std::shared_ptr<std::vector<vec2>> randomNums;
 
 };
 
