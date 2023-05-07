@@ -19,47 +19,21 @@
 
 #define degtorad(angle) angle * MPI / 180
 
-// Uni PC = Ryzen Threadripper PRO 3955wx 16 Cores
-
-// Cull Spheres - behind camera? reduce number of spheres checked against rays
-// Bounding box hierachy?
-
-// Add average timer later?
-
-// Add --switches: --initial & --FreTest switches to cmdlnargs to allow for different setup states
-// --help to show options, --debug to show window?
-
 // Add commands to README
 
 // Remember number of spheres is multiplied by 3 ATM
 
-// Add debug mode - shows window
 
-// optimize random code - maybe track static variables using a vector ref?
-
-// change max render distance in hit_point - reduce from FLOAT_MAX to much closer? Maybe set to bounding box area?
-
-// Many objects created & destroyed inside raytracer class - optomize by sending in handles or passing by ref etc
-// even .Get() seems to created too many shared ptrs
-
-
-
-int main()
+int main(char* args[], int argNum)
 {
     // Time the creation of objects
     std::chrono::high_resolution_clock wallClock{};
     auto setupBegin = wallClock.now();
 
     // Store cmdArgs in class (has default values if not provided with args)
-    CmdArgs cmdArgs{1};
+    CmdArgs cmdArgs{args, (unsigned int)argNum};
 
-    // Check if DEBUG MODE, --debug was set
-    // Not sure how to properly have multiple modes
-    // 
-    //const bool cmdArgsDEBUG{1};
-    //constexpr bool DEBUG_MODE = cmdArgsDEBUG;
-
-#define DEBUG 1
+//#define DEBUG 1
 
 #ifdef DEBUG
 

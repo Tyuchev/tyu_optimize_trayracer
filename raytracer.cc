@@ -174,9 +174,6 @@ Raytracer::Raycast(Ray& ray, vec3& hitPoint, vec3& hitNormal, const Sphere*& hit
 		}
 	}
 
-	//std::for_each(std::execution::par, frameBufferWidthIt.begin(), frameBufferWidthIt.end(),
-	//	[this, widthInv, heightInv](int xarray)
-	//	{
 
 	return isHit;
 }

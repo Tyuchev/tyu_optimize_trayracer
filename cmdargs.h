@@ -20,8 +20,7 @@ public:
 
 
 	CmdArgs();
-	CmdArgs(int a); // a is discarded
-	CmdArgs(unsigned int envVariabes[], unsigned int arrraySize);
+	CmdArgs(char* envVariabes[], unsigned int arrraySize);
 
 
 

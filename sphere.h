@@ -107,19 +107,19 @@ public:
             }
 
 
-            //// i think this checks if we are inside a sphere - not needed at small numbers
-            //float temp2 = (-b + sqrtDisc) * div;
-            //if (temp2 < prevMaxDist)
-            //{
-            //    //vec3 p = ray.PointAt(temp2);
-            //    storage.p = ray.start + rayVector * temp2;
-            //    storage.normal = (storage.p - this->center) * (1.0f / this->radius);
-            //    storage.t = temp2;
-            //    storage.sphere = this;
-            // 
-            //    intersected = true;
-            //    return intersected;
-            //}
+            // i think this checks if we are inside a sphere - not needed at small numbers
+            float temp2 = (-b + sqrtDisc) * div;
+            if (temp2 < prevMaxDist)
+            {
+                //vec3 p = ray.PointAt(temp2);
+                storage.p = ray.start + rayVector * temp2;
+                storage.normal = (storage.p - this->center) * (1.0f / this->radius);
+                storage.t = temp2;
+                storage.sphere = this;
+             
+                intersected = true;
+                return intersected;
+            }
         }
            
 ;

@@ -7,7 +7,7 @@
 
 
 CmdArgs::CmdArgs()
-	: windowWidth(1024), windowHeight(768), imageWidth(200), imageHeight(100), raysPerPixel(1), maxBounces(5), numSpheres(12)
+	: windowWidth(1000), windowHeight(500), imageWidth(200), imageHeight(100), raysPerPixel(1), maxBounces(5), numSpheres(12)
 {
 	// blank
 	// Number of spheres is actually multiplied by 3 - therefore initial test has 12 * 3 = 36 spheres
@@ -16,90 +16,72 @@ CmdArgs::CmdArgs()
 	// tests per second = 720,000 / rendertime = 1,309,090,909
 }
 
-CmdArgs::CmdArgs(int a) // a is discarded
-	: windowWidth(1000), windowHeight(500), imageWidth(1000), imageHeight(500), raysPerPixel(20), maxBounces(5), numSpheres(3334)
+//CmdArgs::CmdArgs(int a) // a is discarded
+//	: windowWidth(1000), windowHeight(500), imageWidth(1000), imageHeight(500), raysPerPixel(20), maxBounces(5), numSpheres(3334)
+//{
+//	// blank
+//	// Number of spheres is actually multiplied by 3 - therefore initial test has 3334 * 3 = 10002 spheres
+//
+//	// 100,000,000,000 (100 billion)
+//	// Render time 296
+//	// tests per second = 100 billion / rendertime = 333,333,333
+//}
+
+
+
+CmdArgs::CmdArgs(char* envVariables[], unsigned int arraySize)
+	: windowWidth(1000), windowHeight(500), maxBounces(5)
 {
-	// blank
-	// Number of spheres is actually multiplied by 3 - therefore initial test has 3334 * 3 = 10002 spheres
+	if (arraySize >= 4 && arraySize < 10)
+	{
 
-	// 100,000,000,000 (100 billion)
-	// Render time 296
-	// tests per second = 100 billion / rendertime = 333,333,333
-}
-
-
-
-CmdArgs::CmdArgs(unsigned int envVariables[], unsigned int arraySize)
-{
-	// NEEDS TO BE REWORKED - MAYBE PROFILES? CHECK SWITCHES, INCOMING DATA AND ARRAY SIZE!!!!!
-	// REMEMBER THAT NR OF SPHERES IS ACTUALLY x3
-
-	//CHECK IF BELOW 0
-
-	// Command Line Arg Guards
-	// If user overflows unsigned int behaviour is defined & values should wrap around
-
-	//if (windoww <= 2560)
-	//{
-	//	windowWidth = windoww;
-	//}
-	//else
-	//{
-	//	windowWidth = 2560;
-	//}
-	//if (windowh <= 1440)
-	//{
-	//	windowHeight = windowh;
-	//}
-	//else
-	//{
-	//	windowHeight = 1440;
-	//}
+		unsigned int imagew = atoi(envVariables[0]);
+		unsigned int imageh = atoi(envVariables[1]);
+		unsigned int rays = atoi(envVariables[2]);
+		unsigned int spheres = atoi(envVariables[3]);
 
 
-	//if (imagew <= 2560)
-	//{
-	//	imageWidth = imagew;
-	//}
-	//else
-	//{
-	//	imageWidth = 2560;
-	//}
-	//if (imageh <= 1440)
-	//{
-	//	imageHeight = imageh;
-	//}
-	//else
-	//{
-	//	imageHeight = 1440;
-	//}
+		if (imagew <= 2560)
+		{
+			imageWidth = imagew;
+		}
+		else
+		{
+			imageWidth = 2560;
+		}
+		if (imageh <= 1440)
+		{
+			imageHeight = imageh;
+		}
+		else
+		{
+			imageHeight = 1440;
+		}
 
-	//if (rays <= 50)
-	//{
-	//	raysPerPixel = rays;
-	//}
-	//else
-	//{
-	//	raysPerPixel = 50;
-	//}
+		if (rays <= 20)
+		{
+			raysPerPixel = rays;
+		}
+		else
+		{
+			raysPerPixel = 50;
+		}
 
-	//if (bounces <= 10)
-	//{
-	//	maxBounces = bounces;
-	//}
-	//else
-	//{
-	//	maxBounces = 10;
-	//}
-
-	//if (spheres <= 20000)
-	//{
-	//	numSpheres = spheres;
-	//}
-	//else
-	//{
-	//	numSpheres = 20000;
-	//}
-
+		if (spheres <= 20000)
+		{
+			numSpheres = spheres;
+		}
+		else
+		{
+			numSpheres = 20000;
+		}
+	}
+	else
+	{
+		imageWidth = 1000;
+		imageHeight = 500;
+		raysPerPixel = 1;
+		numSpheres = 12;
+	}
 
 }
