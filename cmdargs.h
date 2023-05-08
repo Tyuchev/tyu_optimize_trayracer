@@ -2,6 +2,8 @@
 // Cmd ln args class header
 
 #include <vector>
+#include <cstdlib>
+#include <iostream>
 
 
 
@@ -10,17 +12,18 @@ class CmdArgs
 public:
 
 
-	unsigned int windowWidth;
-	unsigned int windowHeight;
-	unsigned int imageWidth;
-	unsigned int imageHeight;
-	unsigned int raysPerPixel;
-	unsigned int maxBounces;
-	unsigned int numSpheres;
+	int windowWidth;
+	int windowHeight;
+	int imageWidth;
+	int imageHeight;
+	int raysPerPixel;
+	int maxBounces;
+	int numSpheres;
 
 
 	CmdArgs();
-	CmdArgs(char* envVariabes[], unsigned int arrraySize);
+
+	void updateEnvVariables(char* envVariables[]);
 
 
 

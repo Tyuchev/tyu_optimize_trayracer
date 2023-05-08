@@ -17,6 +17,7 @@
 #include <thread>
 #include <atomic>
 
+
 #define degtorad(angle) angle * MPI / 180
 
 // Add commands to README
@@ -24,17 +25,34 @@
 // Remember number of spheres is multiplied by 3 ATM
 
 
-int main(char* args[], int argNum)
+int main(int argc, char* argv[])
 {
     // Time the creation of objects
     std::chrono::high_resolution_clock wallClock{};
     auto setupBegin = wallClock.now();
+    
+    //initialise with standard settings - then check for input
+    CmdArgs cmdArgs{};
+    
+    if (argc == 5)
+    {
+        char* arg[] = { argv[1], argv[2], argv[3], argv[4] };
 
-    // Store cmdArgs in class (has default values if not provided with args)
-    CmdArgs cmdArgs{args, (unsigned int)argNum};
+        // Store cmdArgs in class (has default values if not provided with args)
+        cmdArgs.updateEnvVariables(arg);
+    }
+    else if (argc > 0) // checks for too little or too much input
+    {
+
+        std::cout << "This program will only accept & must take 4 command line args" << std::endl;
+        std::cout << "Executing with standard parameters: " << std::endl;
+        std::cout << "imageWidth = 200, imageHeight = 100, raysPerPixel = 1, numSpheres = 12(* 3)" << std::endl;
+
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+    }
+
 
 //#define DEBUG 1
-
 #ifdef DEBUG
 
     Display::Window wnd;
@@ -59,7 +77,7 @@ int main(char* args[], int argNum)
 
 
     // Create Raytracer
-    Raytracer rt{ cmdArgs.imageWidth, cmdArgs.imageHeight, framebuffer, cmdArgs.raysPerPixel, cmdArgs.maxBounces, sphereHolder };
+    Raytracer rt{ (unsigned int)cmdArgs.imageWidth, (unsigned int)cmdArgs.imageHeight, framebuffer, (unsigned int)cmdArgs.raysPerPixel, (unsigned int)cmdArgs.maxBounces, sphereHolder };
     RandomGen randomGen;
 
 
