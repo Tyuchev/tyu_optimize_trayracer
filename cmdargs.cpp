@@ -66,7 +66,7 @@ void CmdArgs::updateEnvVariables(char* envVariables[])
 }
 
 
-// Debuging constructor - depracted
+// Debuging constructor - depracated
 //CmdArgs::CmdArgs(int a) // a is discarded
 //	: windowWidth(1000), windowHeight(500), imageWidth(1000), imageHeight(500), raysPerPixel(20), maxBounces(5), numSpheres(3334)
 //{
