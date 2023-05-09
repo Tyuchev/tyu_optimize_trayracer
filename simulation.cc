@@ -41,10 +41,10 @@ int main(int argc, char* argv[])
         // Store cmdArgs in class (has default values if not provided with args)
         cmdArgs.updateEnvVariables(arg);
     }
-    else if (argc > 0) // checks for too little or too much input
+    else if (argc > 1) // checks for too little or too much input
     {
 
-        std::cout << "This program will only accept & must take 4 command line args" << std::endl;
+        std::cout << "This program will only accept 4 command line args" << std::endl;
         std::cout << "Executing with standard parameters: " << std::endl;
         std::cout << "imageWidth = 200, imageHeight = 100, raysPerPixel = 1, numSpheres = 12(* 3)" << std::endl;
 
